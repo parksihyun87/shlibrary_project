@@ -1,14 +1,20 @@
+import java.util.Scanner;
+
 public class SHLibraryManager {
+    DBConnect connect = new DBConnect();
 
 
 
     public void run(){
+        connect.initDBConnect();
+
         while(true){
             boolean endFlag=false;
             MenuManager.initMenu();
             int select=MenuManager.selectInitMenu();
             switch(select){
                 case MenuManager.LOGIN:
+                    login();
                     break;
                 case MenuManager.NEWMEMBER:
                     break;
@@ -22,9 +28,30 @@ public class SHLibraryManager {
         }
     }
 
+
     public boolean login(){
+
+
         return true;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public void LibraryProcess(){
         while(true){
