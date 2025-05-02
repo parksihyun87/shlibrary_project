@@ -39,7 +39,48 @@ public class AdminManager {
     }
 
     public void bookAdmin(){
+        //comrequest=n인 요청 목록만 조회
+        String requestquery="select * from requesttbl where comrequest='n'";
+        DBConnect db=new DBConnect();
+        db.initDBConnect();
 
+        try(Connection conn=db.getConnection();
+            Statement stmt=conn.createStatement();
+            ResultSet rs= stmt.executeQuery(requestquery)){
+
+            while(rs.next()){
+                int num=rs.getInt("requestnum");
+                String id=rs.getString("userid");
+                String title=rs.getString("title");
+                String author=rs.getString("author");
+                String publisher=rs.getString("publisher");
+                String complete=rs.getString("comrequest");
+
+                System.out.println("----------------도서 요청 목록----------------");
+                System.out.println(num+". "+id+"님이 신청하신 책");
+                System.out.println(title+" | "+author+" | "+publisher+" | ");
+                System.out.println("책을 구입할까요? Y|N");
+                Scanner input=new Scanner(System.in);
+                String yn=input.nextLine();
+
+                //yn이 Y일 경우 requesttbl를 업데이트(comrequest를 y로 변경)
+                //booktbl도 업데이트해야할 듯. (책을 구매해서 목록에 추가되었으니까)
+                if(yn.toUpperCase().equals("Y")){
+                    String updaterequestquery="UPDATE requesttbl SET comrequest = y where requestnum = num";
+                    db.initDBConnect();
+
+                    try(conn;
+                        PreparedStatement pstmt=conn.prepareStatement(updaterequestquery)){
+                        pstmt.setString(0,complete);
+                        System.out.println("책을 구매하여 책 목록에 추가하였습니다.");
+                    }
+                }
+
+
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Map<String, Long> datediff(){
