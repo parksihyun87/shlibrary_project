@@ -45,5 +45,29 @@ public class LibraryManager {
         }
     }
 
+    public void AdminProcess(){
+        while(true){
+            boolean endFlag=false;
+            AdminManager.AdminMenu();
+            int select=AdminManager.selectAdminMenu();
+            switch(select){
+                case AdminManager.MEMBERADMIN :
+                    break;
+                case AdminManager.BOOKADMIN:
+                    break;
+                case AdminManager.GRADEADMIN:
+                    break;
+                case AdminManager.BLACKADMIN:
+                    break;
+                case AdminManager.EXITADMIN:
+                    endFlag=true;
+                    break;
+            }
+            if(endFlag){
+                break;
+            }
+        }
+    }
+
 
 }
