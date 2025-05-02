@@ -22,6 +22,10 @@ public class DBConnect {
         }
     }
 
+    public Connection getConnection(){
+        return this.conn;
+    }
+
     public void releaseDB(){
         try{
             this.stmt.close();
