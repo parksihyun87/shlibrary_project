@@ -2,7 +2,7 @@ import java.sql.*;
 
 public class DBConnect {
     // git check
-    //장세령 // 장희용
+    //장세령2햣 // 장희용//
     private String driver="com.mysql.cj.jdbc.Driver";
     private String url="jdbc:mysql://localhost:3306/shlibrary";
     private String user="root";
