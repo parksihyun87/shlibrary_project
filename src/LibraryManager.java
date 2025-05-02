@@ -1,0 +1,49 @@
+public class LibraryManager {
+
+    public void run(){
+        while(true){
+            boolean endFlag=false;
+            MenuManager.initMenu();
+            int select=MenuManager.selectInitMenu();
+            switch(select){
+                case MenuManager.LOGIN:
+                    break;
+                case MenuManager.NEWMEMBER:
+                    break;
+                case MenuManager.EXIT:
+                    endFlag=true;
+                    break;
+            }
+            if(endFlag){
+                break;
+            }
+        }
+    }
+
+    public boolean login(){
+        return true;
+    }
+
+    public void LibraryProcess(){
+        while(true){
+            boolean endFlag=false;
+            MenuManager.libraryMenu();
+            int select=MenuManager.selectLibraryMenu();
+            switch(select){
+                case MenuManager.LIBRARY:
+                    break;
+                case MenuManager.MYINFO:
+                    break;
+                case MenuManager.ADMIN:
+                    break;
+                case MenuManager.LOGOUT:
+                    endFlag=true;
+            }
+            if(endFlag){
+                break;
+            }
+        }
+    }
+
+
+}
