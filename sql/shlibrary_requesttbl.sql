@@ -25,9 +25,9 @@ DROP TABLE IF EXISTS `requesttbl`;
 CREATE TABLE `requesttbl` (
   `requestnum` int(11) NOT NULL AUTO_INCREMENT,
   `userid` char(4) NOT NULL,
-  `bookname` varchar(20) NOT NULL,
-  `writer` varchar(10) DEFAULT NULL,
-  `publisher` varchar(20) DEFAULT NULL,
+  `title` varchar(40) NOT NULL,
+  `author` varchar(30) DEFAULT NULL,
+  `publisher` varchar(30) DEFAULT NULL,
   `comrequest` char(1) NOT NULL,
   PRIMARY KEY (`requestnum`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -52,4 +52,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-01 17:40:18
+-- Dump completed on 2025-05-02 12:59:20
