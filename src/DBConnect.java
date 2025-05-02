@@ -21,4 +21,13 @@ public class DBConnect {
             e.printStackTrace();
         }
     }
+
+    public void releaseDB(){
+        try{
+            this.stmt.close();
+            this.conn.close();
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+    }
 }
