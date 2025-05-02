@@ -30,6 +30,20 @@ public class AdminManager {
         return select;
     }
 
+    public void memberAdmin(){
 
+    }
+
+    public void bookAdmin(){
+
+    }
+
+    public void gradeAdmin(){
+
+    }
+
+    public void blackAdmin(){
+
+    }
 
 }

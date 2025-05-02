@@ -1,4 +1,4 @@
-public class LibraryManager {
+public class SHLibraryManager {
 
     public void run(){
         while(true){

@@ -1,6 +1,6 @@
 public class Main {
     public static void main(String[] args) {
-        LibraryManager manager=new LibraryManager();
+        SHLibraryManager manager=new SHLibraryManager();
         manager.run();
     }
 }
