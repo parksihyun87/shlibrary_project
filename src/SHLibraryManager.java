@@ -2,7 +2,7 @@ import java.util.Scanner;
 
 public class SHLibraryManager {
     DBConnect connect = new DBConnect();
-
+//시현1
     public void run(){
         connect.initDBConnect();
 
