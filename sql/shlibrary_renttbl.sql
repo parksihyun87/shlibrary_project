@@ -25,7 +25,7 @@ DROP TABLE IF EXISTS `renttbl`;
 CREATE TABLE `renttbl` (
   `rentnumber` int NOT NULL AUTO_INCREMENT,
   `userid` varchar(10) NOT NULL,
-  `bookid` int NOT NULL,
+  `isbn` int NOT NULL,
   `rentdate` date NOT NULL,
   `duedate` date NOT NULL,
   `prolong` tinyint(1) NOT NULL,
@@ -54,4 +54,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-03  0:36:10
+-- Dump completed on 2025-05-04 10:19:13
