@@ -8,12 +8,8 @@ import java.util.Scanner;
 public class SHLibraryManager {
     DBConnect connect = new DBConnect();
 
-
-
-
-
     User currentUser = null;
-//시현1
+
 
     public void run(){
         connect.initDBConnect();
