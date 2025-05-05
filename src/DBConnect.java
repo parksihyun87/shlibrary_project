@@ -22,7 +22,6 @@ public class DBConnect {
         }
     }
 
-
     public Connection getConnection(){
         return this.conn;
     }
@@ -30,6 +29,7 @@ public class DBConnect {
     public Connection getConnection() {
         return this.conn;
     }//변경
+
 
 
     public void releaseDB(){

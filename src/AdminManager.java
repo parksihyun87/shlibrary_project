@@ -1,4 +1,3 @@
-
 import java.sql.*;
 import java.util.Date;
 import java.util.HashMap;
@@ -108,6 +107,45 @@ public class AdminManager {
     }
 
 
+    public void bookAdmin(){
+        //comrequest=n인 요청 목록만 조회
+        String requestquery="select * from requesttbl where comrequest='n'";
+        DBConnect db=new DBConnect();
+        db.initDBConnect();
+
+        try(Connection conn=db.getConnection();
+            Statement stmt=conn.createStatement();
+            ResultSet rs= stmt.executeQuery(requestquery)){
+
+            while(rs.next()){
+                int num=rs.getInt("requestnum");
+                String id=rs.getString("userid");
+                String title=rs.getString("title");
+                String author=rs.getString("author");
+                String publisher=rs.getString("publisher");
+                String complete=rs.getString("comrequest");
+
+                System.out.println("----------------도서 요청 목록----------------");
+                System.out.println(num+". "+id+"님이 신청하신 책");
+                System.out.println(title+" | "+author+" | "+publisher+" | ");
+                System.out.println("책을 구입할까요? Y|N");
+                Scanner input=new Scanner(System.in);
+                String yn=input.nextLine();
+
+                //yn이 Y일 경우 requesttbl를 업데이트(comrequest를 y로 변경)
+                //booktbl도 업데이트해야할 듯. (책을 구매해서 목록에 추가되었으니까)
+                if(yn.toUpperCase().equals("Y")){
+                    String updaterequestquery="UPDATE requesttbl SET comrequest = y where requestnum = num";
+                    db.initDBConnect();
+
+                    try(conn;
+                        PreparedStatement pstmt=conn.prepareStatement(updaterequestquery)){
+                        pstmt.setString(0,complete);
+                        System.out.println("책을 구매하여 책 목록에 추가하였습니다.");
+                    }
+                }
+
+
     public Map<String, Long> datediff(){
         Map<String, Long> userDaysMap=new HashMap<>();
 
@@ -181,7 +219,98 @@ public class AdminManager {
             e.printStackTrace();
         }
 
+
+
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
+
+
+    public Map<String, GradeInfo> datediff(){
+        Map<String, GradeInfo> userDaysMap=new HashMap<>();
+
+        //현재 날짜를 sql 형식으로 받아온다
+        java.util.Date utilDate=new java.util.Date();
+        long currentSeconds=utilDate.getTime();
+        java.sql.Date curDate=new java.sql.Date(currentSeconds);
+
+        //usertbl에서 id, name, date, grade 가져옴
+        String datequery="Select u.userid, u.username, u.userdate, u.usergrade, count(r.personid) as rent_count "+
+                "from usertbl u "+
+                "join renttbl r "+
+                "on u.userid=r.personid "+
+                "group by u.userid, u.username, u.userdate, u.usergrade";
+
+        DBConnect db=new DBConnect();
+        db.initDBConnect();
+
+        try(Connection conn=db.getConnection();
+            Statement stmt=conn.createStatement();
+            ResultSet rs=stmt.executeQuery(datequery)){
+
+            while (rs.next()){
+                String id=rs.getString("userid");
+                String name=rs.getString("username");
+                Date userDate=rs.getDate("userdate");
+                String grade=rs.getString("usergrade");
+                int rentcount=rs.getInt("rent_count"); // rentcount -> 유저별 대여 횟수
+
+                //현재날짜에서 가입날짜를 초로 바꾼 뒤 뺀다.
+                //빼기 수행 후에 날짜로 변환
+                long diffSec=(curDate.getTime()-userDate.getTime())/1000;
+                long diffDays=diffSec/(24*60*60);
+
+                System.out.println(name+"님이 가입한 지 "+diffDays+"일 되었습니다. ");
+                userDaysMap.put(id, new GradeInfo(diffDays, rentcount)); //id와 (diffdays, rentcount)를 맵에 넣는다.
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return userDaysMap;
+        }
+
+    public void gradeAdmin() throws SQLException {
+            Map<String, GradeInfo> userDiffMap=datediff();
+
+            String updatedatequery="UPDATE usertbl SET usergrade = ? where userid = ?";
+            DBConnect db=new DBConnect();
+            db.initDBConnect();
+
+            try(Connection conn=db.getConnection();
+                PreparedStatement pstmt=conn.prepareStatement(updatedatequery)){
+
+                for(Map.Entry<String, GradeInfo> entry:userDiffMap.entrySet()){
+                    String id= entry.getKey();
+                    GradeInfo Info=entry.getValue();
+                    long diffDays=Info.getDiffDays();
+                    int rentcount=Info.getRentCount();
+                    long diffMonth=diffDays/30;
+
+                    String grade;
+                    if(diffMonth>=6 && diffMonth<12 && rentcount>=10){
+                        grade="일반회원";
+                    }else if(diffMonth>=12 && diffMonth<18 && rentcount>=15){
+                        grade="우수회원";
+                    }else if(diffMonth>=18 && rentcount>=20){
+                        grade="모범회원";
+                    }else{
+                        grade="신입회원";
+                    }
+
+                    pstmt.setString(1, grade);
+                    pstmt.setString(2, id);
+                    pstmt.executeUpdate();
+
+                    System.out.println(id+"님의 등급을 "+grade+"로 업데이트하였습니다.");
+                }
+            }catch(SQLException e){
+                e.printStackTrace();
+            }
+
+        }
+
 
 
     public void blackAdmin(){
