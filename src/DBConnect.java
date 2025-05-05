@@ -26,6 +26,12 @@ public class DBConnect {
         return this.conn;
     }
 
+    public Connection getConnection() {
+        return this.conn;
+    }//변경
+
+
+
     public void releaseDB(){
         try{
             this.stmt.close();
