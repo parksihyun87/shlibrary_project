@@ -83,8 +83,8 @@ public class AdminManager {
         }
     }
 
-    public Map<String, Long> datediff(){
-        Map<String, Long> userDaysMap=new HashMap<>();
+    public Map<String, GradeInfo> datediff(){
+        Map<String, GradeInfo> userDaysMap=new HashMap<>();
 
         //현재 날짜를 sql 형식으로 받아온다
         java.util.Date utilDate=new java.util.Date();
@@ -92,7 +92,12 @@ public class AdminManager {
         java.sql.Date curDate=new java.sql.Date(currentSeconds);
 
         //usertbl에서 id, name, date, grade 가져옴
-        String datequery="Select u.userid, u.username, u.userdate, u.usergrade "+"from usertbl u";
+        String datequery="Select u.userid, u.username, u.userdate, u.usergrade, count(r.personid) as rent_count "+
+                "from usertbl u "+
+                "join renttbl r "+
+                "on u.userid=r.personid "+
+                "group by u.userid, u.username, u.userdate, u.usergrade";
+
         DBConnect db=new DBConnect();
         db.initDBConnect();
 
@@ -105,6 +110,7 @@ public class AdminManager {
                 String name=rs.getString("username");
                 Date userDate=rs.getDate("userdate");
                 String grade=rs.getString("usergrade");
+                int rentcount=rs.getInt("rent_count"); // rentcount -> 유저별 대여 횟수
 
                 //현재날짜에서 가입날짜를 초로 바꾼 뒤 뺀다.
                 //빼기 수행 후에 날짜로 변환
@@ -112,7 +118,7 @@ public class AdminManager {
                 long diffDays=diffSec/(24*60*60);
 
                 System.out.println(name+"님이 가입한 지 "+diffDays+"일 되었습니다. ");
-                userDaysMap.put(id, diffDays); //id와 diffdays를 맵에 넣는다.
+                userDaysMap.put(id, new GradeInfo(diffDays, rentcount)); //id와 (diffdays, rentcount)를 맵에 넣는다.
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -121,7 +127,7 @@ public class AdminManager {
         }
 
     public void gradeAdmin() throws SQLException {
-            Map<String, Long> userDiffMap=datediff();
+            Map<String, GradeInfo> userDiffMap=datediff();
 
             String updatedatequery="UPDATE usertbl SET usergrade = ? where userid = ?";
             DBConnect db=new DBConnect();
@@ -130,17 +136,19 @@ public class AdminManager {
             try(Connection conn=db.getConnection();
                 PreparedStatement pstmt=conn.prepareStatement(updatedatequery)){
 
-                for(Map.Entry<String, Long> entry:userDiffMap.entrySet()){
+                for(Map.Entry<String, GradeInfo> entry:userDiffMap.entrySet()){
                     String id= entry.getKey();
-                    long diffDays=entry.getValue();
+                    GradeInfo Info=entry.getValue();
+                    long diffDays=Info.getDiffDays();
+                    int rentcount=Info.getRentCount();
                     long diffMonth=diffDays/30;
 
                     String grade;
-                    if(diffMonth>=6 && diffMonth<12){
+                    if(diffMonth>=6 && diffMonth<12 && rentcount>=10){
                         grade="일반회원";
-                    }else if(diffMonth>=12 && diffMonth<18){
+                    }else if(diffMonth>=12 && diffMonth<18 && rentcount>=15){
                         grade="우수회원";
-                    }else if(diffMonth>=18){
+                    }else if(diffMonth>=18 && rentcount>=20){
                         grade="모범회원";
                     }else{
                         grade="신입회원";
