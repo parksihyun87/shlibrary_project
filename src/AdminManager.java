@@ -1,3 +1,4 @@
+import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;
 import java.sql.*;
@@ -91,9 +92,9 @@ public class AdminManager {
 
             switch(select){
                 case CHECKREQUEST:
-                    System.out.println("1. 승인 대기중인 목록");
-                    System.out.println("2. 승인 완료된 목록");
-                    System.out.println("3. 승인 반려된 목록");
+                    System.out.println("1. 승인 대기중인 목록"); //comrequest='n'
+                    System.out.println("2. 승인 완료된 목록"); //comrequest='y'
+                    System.out.println("3. 승인 반려된 목록"); //comrequest='r'
                     System.out.println("4. 도서 신청 목록 나가기");
                     int subSelect=MenuManager.menuInput(1, 4);
 
@@ -221,6 +222,7 @@ public class AdminManager {
         }
     }
 
+    //신청 도서 반려 메서드
     public static void rejectBookRequest(int requestnum){
         String updateQuery="update requesttbl set comrequest='r' where requestnum=?";
         DBConnect db=new DBConnect();
@@ -236,6 +238,7 @@ public class AdminManager {
         }
     }
 
+    //등급 판정(업데이트) 메서드
     public static void gradeAdmin() throws SQLException {
         // userDiffMap을 날짜와 대여 횟수 정보로 채운다.
         Map<String, GradeInfo> userDiffMap = datediff();
@@ -257,15 +260,20 @@ public class AdminManager {
 
                 // 등급 계산
                 String grade;
-                if (diffMonth >= 18 && rentcount >= 20) {
-                    grade = "모범회원";
-                } else if (diffMonth >= 12 && diffMonth < 18 && rentcount >= 15) {
-                    grade = "우수회원";
-                } else if (diffMonth >= 6 && diffMonth < 12 && rentcount >= 10) {
-                    grade = "일반회원";
-                } else {
-                    grade = "신입회원";
+                if (isLongTermOverdue((id))) {
+                    grade="장기연체자";
+                }else{
+                    if (diffMonth >= 18 && rentcount >= 20) {
+                        grade = "모범회원";
+                    } else if (diffMonth >= 12 && diffMonth < 18 && rentcount >= 15) {
+                        grade = "우수회원";
+                    } else if (diffMonth >= 6 && diffMonth < 12 && rentcount >= 10) {
+                        grade = "일반회원";
+                    } else {
+                        grade = "신입회원";
+                    }
                 }
+
 
                 // 등급을 업데이트하는 쿼리 실행
                 pstmt.setString(1, grade);
@@ -279,6 +287,7 @@ public class AdminManager {
         }
     }
 
+    //현재날짜와 가입날짜를 비교하여 가입기간을 계산
     public static Map<String, GradeInfo> datediff() {
         Map<String, GradeInfo> userDaysMap = new HashMap<>();
 
@@ -315,11 +324,26 @@ public class AdminManager {
                 userDaysMap.put(id, new GradeInfo(diffDays, rentcount)); // id와 (diffDays, rentCount)를 맵에 저장
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e); // 예외 발생 시 처리
+            e.printStackTrace(); // 예외 발생 시 처리
         }
         return userDaysMap;
     }
 
+    public static boolean isLongTermOverdue(String userid) throws SQLException{
+        String query="select 1 from renttbl "+
+                "where userid=? "+
+                "and datediff(turnindate, duedate)>=30 "+
+                "limit 1";
+        DBConnect db=new DBConnect();
+        db.initDBConnect();
+
+        try(Connection conn=db.getConnection();
+            PreparedStatement pstmt=conn.prepareStatement(query)){
+            pstmt.setString(1, userid);
+            ResultSet rs=pstmt.executeQuery();
+            return rs.next();
+        }
+    }
 
 //    public void blackAdmin(){
 //
