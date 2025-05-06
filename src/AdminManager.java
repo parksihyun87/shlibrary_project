@@ -1,8 +1,8 @@
+import java.util.List;
+import java.util.ArrayList;
 import java.sql.*;
+import java.util.*;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
 
 public class AdminManager {
     //  관리자 메뉴-상위
@@ -17,8 +17,7 @@ public class AdminManager {
     public final static int EXITMEMBERADMIN=3;
     //  도서정보 메뉴
     public final static int CHECKREQUEST=1;
-    public final static int BUYBOOK=2;
-    public final static int EXITBOOKADMIN=3;
+    public final static int EXITBOOKADMIN=2;
     //  회원등급 메뉴
     public final static int CHECKRANK=1;
     public final static int UPDATERANK=2;
@@ -46,8 +45,7 @@ public class AdminManager {
     //  도서정보 메뉴 출력
     public static void bookadmin(){
         System.out.println("1. 신청도서 확인/처리");
-        System.out.println("2. 도서 구매");
-        System.out.println("3. 도서관리 나가기");
+        System.out.println("2. 도서관리 나가기");
     }
     //  회원등급 메뉴 출력
     public static void rateAdmin(){
@@ -84,16 +82,65 @@ public class AdminManager {
     }
 
     //  도서정보 관리 메뉴 실행
-    public static void BookAdminProcess(){
+    public static void BookAdminProcess() throws SQLException {
+        Scanner input=new Scanner(System.in);
         while(true){
             boolean endFlag=false;
             bookadmin();
             int select=MenuManager.menuInput(CHECKREQUEST, EXITBOOKADMIN);
+
             switch(select){
                 case CHECKREQUEST:
+                    System.out.println("1. 승인 대기중인 목록");
+                    System.out.println("2. 승인 완료된 목록");
+                    System.out.println("3. 승인 반려된 목록");
+                    System.out.println("4. 도서 신청 목록 나가기");
+                    int subSelect=MenuManager.menuInput(1, 4);
+
+                    switch(subSelect){
+                        case 1:
+                            List<Request> requestList=getRequestListByStatus("N");
+                            for(Request req:requestList){
+                                System.out.println(req);
+                                System.out.println("이 책을 구매하시겠습니까? : Y|R");
+                                String yn=input.nextLine().toUpperCase();
+
+                                if(yn.equals("Y")){
+                                    System.out.println("도서의 Call Number를 입력하세요. ");
+                                    String callnum=input.nextLine();
+                                    approveBookRequest(req.getRequestnum(), callnum);
+                                    System.out.println("도서 구매 및 목록 등록 완료");
+                                }else if(yn.equals("R")){
+                                    rejectBookRequest(req.getRequestnum());
+                                    System.out.println("도서 구매 신청이 반려되었습니다.");
+                                }else{
+                                    System.out.println("잘못된 입력입니다.");
+                                }
+                            }
+                            break;
+
+                        case 2:
+                            List<Request> approvedList=getRequestListByStatus("Y");
+                            System.out.println("승인 완료 신청 목록 : ");
+                            for(Request req:approvedList){
+                                System.out.println(req);
+                            }
+                            break;
+
+                        case 3:
+                            List<Request> rejectedList=getRequestListByStatus("R");
+                            System.out.println("반려된 신청 목록 : ");
+                            for(Request req:rejectedList){
+                                System.out.println(req);
+                            }
+                            break;
+
+                        case 4:
+                            System.out.println("도서 신청 목록 나가기");
+                            break;
+                    }
                     break;
-                case BUYBOOK:
-                    break;
+
                 case EXITBOOKADMIN:
                     endFlag=true;
                     break;
@@ -104,47 +151,92 @@ public class AdminManager {
         }
     }
 
-
-    public void bookAdmin() throws SQLException {
-        String requestquery = "select * from requesttbl where comrequest='n'";
-        DBConnect db = new DBConnect();
+    //입력값(N, Y, R)에 따라 도서 신청 목록을 확인할 수 있는 메서드
+    public static List<Request> getRequestListByStatus(String status) throws SQLException {
+        List<Request> list=new ArrayList<>();
+        String query="select * from requesttbl where comrequest=?";
+        DBConnect db=new DBConnect();
         db.initDBConnect();
 
-        try (Connection conn = db.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(requestquery)) {
+        try(Connection conn=db.getConnection();
+            PreparedStatement pstmt=conn.prepareStatement(query)){
+            pstmt.setString(1, status);
+            ResultSet rs=pstmt.executeQuery();
 
-            Scanner input = new Scanner(System.in);
+            while(rs.next()){
+                int num=rs.getInt("requestnum");
+                String id=rs.getString("userid");
+                String title=rs.getString("title");
+                String author=rs.getString("author");
+                String publisher=rs.getString("publisher");
 
-            while (rs.next()) {
-                int num = rs.getInt("requestnum");
-                String id = rs.getString("userid");
-                String title = rs.getString("title");
-                String author = rs.getString("author");
-                String publisher = rs.getString("publisher");
+                list.add(new Request(num, id, title, author, publisher, status));
+            }
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+        return list;
+    }
 
-                System.out.println("----------------도서 요청 목록----------------");
-                System.out.println(num + ". " + id + "님이 신청하신 책");
-                System.out.println(title + " | " + author + " | " + publisher + " | ");
-                System.out.println("책을 구입할까요? Y|N");
-                String yn = input.nextLine();
+    //신청 도서 승인 메서드
+    public static void approveBookRequest(int requestnum, String callnum){
+        DBConnect db=new DBConnect();
+        db.initDBConnect();
 
-                if (yn.equalsIgnoreCase("Y")) {
-                    String updaterequestquery = "UPDATE requesttbl SET comrequest = 'y' WHERE requestnum = ?";
-                    try (PreparedStatement pstmt = conn.prepareStatement(updaterequestquery)) {
-                        pstmt.setInt(1, num);
-                        pstmt.executeUpdate();
-                        System.out.println("책을 구매하여 책 목록에 추가하였습니다.");
-                    }
-                } else {
-                    System.out.println("요청이 반려되었습니다.");
+        String selectQuery="select * from requesttbl where requestnum=?";
+        String insertBookQuery="insert into booktbl (isbn, title, author, publisher, pubyear, callnum, rentnum) values (?, ?, ?, ?, ?, ?, 0)";
+        String updateRequestQuery="update requesttbl set comrequest='Y' where requestnum=?";
+
+        try(Connection conn=db.getConnection();
+            PreparedStatement pstmt=conn.prepareStatement(selectQuery)){
+            pstmt.setInt(1, requestnum);
+            ResultSet rs=pstmt.executeQuery();
+
+            if(rs.next()){
+                String title=rs.getString("title");
+                String author=rs.getString("author");
+                String publisher=rs.getString("publisher");
+                int pubyear=rs.getInt("pubyear");
+                int isbn=requestnum+3000;
+
+                try(PreparedStatement insertPstmt=conn.prepareStatement(insertBookQuery);
+                    PreparedStatement updatePstmt=conn.prepareStatement(updateRequestQuery)){
+
+                    insertPstmt.setInt(1, isbn);
+                    insertPstmt.setString(2, title);
+                    insertPstmt.setString(3, author);
+                    insertPstmt.setString(4, publisher);
+                    insertPstmt.setInt(5, pubyear);
+                    insertPstmt.setString(6, callnum);
+                    insertPstmt.executeUpdate();
+
+                    updatePstmt.setInt(1, requestnum);
+                    updatePstmt.executeUpdate();
+                    System.out.println("도서 구매가 승인되어 도서 목록에 추가되었습니다. ");
                 }
             }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
+    public static void rejectBookRequest(int requestnum){
+        String updateQuery="update requesttbl set comrequest='r' where requestnum=?";
+        DBConnect db=new DBConnect();
+        db.initDBConnect();
 
-    public void gradeAdmin() throws SQLException {
+        try(Connection conn=db.getConnection();
+            PreparedStatement pstmt=conn.prepareStatement(updateQuery)){
+            pstmt.setInt(1, requestnum);
+            pstmt.executeUpdate();
+            System.out.println("도서 신청이 반려 처리되었습니다. ");
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+    public static void gradeAdmin() throws SQLException {
         // userDiffMap을 날짜와 대여 횟수 정보로 채운다.
         Map<String, GradeInfo> userDiffMap = datediff();
 
@@ -187,7 +279,7 @@ public class AdminManager {
         }
     }
 
-    public Map<String, GradeInfo> datediff() {
+    public static Map<String, GradeInfo> datediff() {
         Map<String, GradeInfo> userDaysMap = new HashMap<>();
 
         // 현재 날짜를 SQL 형식으로 받아옴
@@ -196,9 +288,9 @@ public class AdminManager {
         java.sql.Date curDate = new java.sql.Date(currentSeconds);
 
         // usertbl에서 id, name, date, grade, 대여 횟수 가져오기
-        String datequery = "SELECT u.userid, u.username, u.userdate, u.usergrade, COUNT(r.personid) AS rent_count " +
+        String datequery = "SELECT u.userid, u.username, u.userdate, u.usergrade, COUNT(r.userid) AS rent_count " +
                 "FROM usertbl u " +
-                "JOIN renttbl r ON u.userid = r.personid " +
+                "JOIN renttbl r ON u.userid = r.userid " +
                 "GROUP BY u.userid, u.username, u.userdate, u.usergrade";
 
         DBConnect db = new DBConnect();
@@ -219,7 +311,7 @@ public class AdminManager {
                 long diffSec = (curDate.getTime() - userDate.getTime()) / 1000;
                 long diffDays = diffSec / (24 * 60 * 60);
 
-                System.out.println(name + "님이 가입한 지 " + diffDays + "일 되었습니다.");
+                //System.out.println(name + "님이 가입한 지 " + diffDays + "일 되었습니다.");
                 userDaysMap.put(id, new GradeInfo(diffDays, rentcount)); // id와 (diffDays, rentCount)를 맵에 저장
             }
         } catch (SQLException e) {
@@ -240,9 +332,35 @@ public class AdminManager {
             rateAdmin();
             int select=MenuManager.menuInput(CHECKRANK, EXITGRADEADMIN);
             switch(select){
+                //회원 등급 정보 확인
                 case CHECKRANK:
+                    System.out.println("===== 회원 등급 정보 =====");
+                    String rankcheckquery="SELECT userid, username, usergrade FROM usertbl";
+                    DBConnect db=new DBConnect();
+                    db.initDBConnect();
+
+                    try(Connection conn=db.getConnection();
+                        Statement stmt=conn.createStatement();
+                        ResultSet rs=stmt.executeQuery(rankcheckquery)) {
+
+                        while(rs.next()){
+                            String id=rs.getString("userid");
+                            String name=rs.getString("username");
+                            String grade=rs.getString("usergrade");
+                            System.out.println(id+" | "+name+" | 등급 : "+grade);
+                        }
+                    } catch (SQLException e) {
+                        System.out.println("회원 정보 조회 중 오류 발생 : "+e.getMessage());
+                    }
                     break;
+                //회원 등급 정보 갱신
                 case UPDATERANK:
+                    try{
+                        gradeAdmin();
+                        System.out.println("회원 등급이 성공적으로 갱신되었습니다. ");
+                    }catch(SQLException e){
+                        System.out.println("등급 갱신 중 오류 발생 : "+e.getMessage());
+                    }
                     break;
                 case EXITGRADEADMIN:
                     endFlag=true;

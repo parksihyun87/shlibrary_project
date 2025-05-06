@@ -5,7 +5,7 @@ public class DBConnect {
     private String driver="com.mysql.cj.jdbc.Driver";
     private String url="jdbc:mysql://localhost:3306/shlibrary";
     private String user="root";
-    private String password="1234";
+    private String password="12341234";
 
     private Connection conn=null;
     private Statement stmt=null;

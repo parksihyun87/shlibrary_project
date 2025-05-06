@@ -11,7 +11,7 @@ public class SHLibraryManager {
     User currentUser = null;
 
 
-    public void run(){
+    public void run() throws SQLException {
         connect.initDBConnect();
 
         while(true){
@@ -139,7 +139,7 @@ public class SHLibraryManager {
     }
 
     //  메인 메뉴 실행
-    public boolean MainMenuProcess(){
+    public boolean MainMenuProcess() throws SQLException {
         while(true){
             boolean endFlag=false;
             MenuManager.mainMenu();
@@ -221,7 +221,7 @@ public class SHLibraryManager {
         }
     }
     //  관리자 메뉴 실행
-    public void AdminProcess(){
+    public void AdminProcess() throws SQLException {
         while(true){
             boolean endFlag=false;
             AdminManager.AdminMenu();
