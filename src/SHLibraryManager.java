@@ -1,83 +1,212 @@
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Date;
 import java.util.Scanner;
 
 public class SHLibraryManager {
+    // 멤버 변수
     DBConnect connect = new DBConnect();
-
     User currentUser = null;
+    private Connection conn = null;
+    private Statement stmt = null;
+    LibraryManager lbM;
+    AdminManager adM;
+    MemberManager meM;
 
-
-    public void run(){
+    //<<메뉴 함수>>
+    // DB 시작 및 초기 메뉴 실행
+    // 메인 메뉴 실행
+    public void run() {
         connect.initDBConnect();
-
-        while(true){
-            boolean endFlag=false;
-            MenuManager.initMenu();
-            int select=MenuManager.menuInput(MenuManager.LOGIN,MenuManager.EXIT);
-            switch(select){
-                case MenuManager.LOGIN:
-                    while (this.login()) {
-                        if (!this.MainMenuProcess()) {
-                            break;
+        try {
+            this.conn = connect.getConnection();
+            this.stmt = this.conn.createStatement();
+            while (true) {
+                boolean endFlag = false;
+                MenuManager.initMenu();
+                int select = MenuManager.menuInput(MenuManager.LOGIN, MenuManager.EXIT);
+                switch (select) {
+                    case MenuManager.LOGIN:
+                        while (this.login()) {
+                            lbM = new LibraryManager(conn, currentUser);
+                            adM = new AdminManager(conn, currentUser);
+                            meM = new MemberManager(conn, currentUser);
+                            if (!this.mainMenuProcess()) {
+                                break;
+                            }
                         }
+                        break;
+                    case MenuManager.NEWMEMBER:
+                        this.newMember();
+                        break;
+                    case MenuManager.EXIT:
+                        endFlag = true;
+                        System.out.println("감사합니다.");
+                        connect.releaseDB();
+                        break;
+                }
+                if (endFlag) {
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    //  메인 메뉴 실행
+    public boolean mainMenuProcess() {
+        while (true) {
+            boolean endFlag = false;
+            MenuManager.mainMenu();
+            int select = MenuManager.menuInput(MenuManager.LIBRARY, MenuManager.LOGOUT);
+            switch (select) {
+                case MenuManager.LIBRARY:
+                    this.libraryProcess();
+                    break;
+                case MenuManager.INFORM:
+                    this.memberProcess();
+                    break;
+                case MenuManager.ADMIN:
+                    if(currentUser.getUserid().equals("adm1")||currentUser.getUserid().equals("adm2")){
+                        this.adminProcess();
                     }
+                    System.out.println("관리자만 이용 가능합니다.");
                     break;
-                case MenuManager.NEWMEMBER:
-                    this.newMember();
+                case MenuManager.LOGOUT:
+                    endFlag = true;
+            }
+            if (endFlag) {
+                System.out.println("로그아웃됨.");
+                currentUser = null;
+                return false;
+            }
+        }
+    }
+
+    // 도서관 메뉴 실행
+    public void libraryProcess() {
+        while (true) {
+            boolean endFlag = false;
+            MenuManager.libraryMenu();
+            int select = MenuManager.menuInput(MenuManager.BOOKSEARCH, MenuManager.EXITLIBRARY);
+            switch (select) {
+                case MenuManager.BOOKSEARCH:
+                    lbM.bookSearchProcess();
                     break;
-                case MenuManager.EXIT:
-                    endFlag=true;
-                    System.out.println("감사합니다.");
-                    connect.releaseDB(); //변경
+                case MenuManager.BESTSELLER:
+                    lbM.bestsellerProcess();
+                    break;
+                case MenuManager.INTEREST:
+                    lbM.interestCategoryProcess();
+                    break;
+                case MenuManager.BOOKRETURN:
+                    lbM.bookReturnProcess();
+                    break;
+                case MenuManager.BOOKREQUEST:
+                    lbM.bookRequestProcess();
+                    break;
+                case MenuManager.EXITLIBRARY:
+                    endFlag = true;
                     break;
             }
-            if(endFlag){
+            if (endFlag) break;
+        }
+    }
+
+    // 회원 메뉴 실행
+    public void memberProcess() {
+        while (true) {
+            boolean endFlag = false;
+            MenuManager.memberMenu();
+            int select = MenuManager.menuInput(MenuManager.MYBOOK, MenuManager.EXITMEMBER);
+            switch (select) {
+                case MenuManager.MYBOOK:
+                    meM.rentalStatusProcess();
+                    break;
+                case MenuManager.MYINFO:
+                    meM.myInfoProcess();
+                    break;
+                case MenuManager.DELAY:
+                    meM.overdueCheckProcess();
+                    break;
+                case MenuManager.EXITMEMBER:
+                    endFlag = true;
+                    break;
+            }
+            if (endFlag) {
                 break;
             }
         }
     }
-    // 회원가입
+
+    // 관리자 메뉴 실행
+    public void adminProcess() {
+        while (true) {
+            boolean endFlag = false;
+            MenuManager.AdminMenu();  // 메뉴 출력
+            int select = MenuManager.menuInput(MenuManager.MEMBERADMIN, MenuManager.EXITADMIN);
+            switch (select) {
+                case MenuManager.MEMBERADMIN:
+                    adM.memberAdminProcess();
+                    break;
+                case MenuManager.BOOKADMIN:
+                    adM.bookAdminProcess();
+                    break;
+                case MenuManager.GRADEADMIN:
+                    adM.gradeAdminProcess();
+                    break;
+                case MenuManager.BLACKADMIN:
+                    adM.blackAdminProcess();
+                    break;
+                case MenuManager.EXITADMIN:
+                    endFlag = true;
+                    break;
+            }
+            if (endFlag) {
+                break;
+            }
+        }
+    }
+
+    //<<기능 함수 부>>
+//<회원가입 및 로그인>
+// 회원가입
     public void newMember() {
         User user = null;
         Scanner input = new Scanner(System.in);
-            System.out.println("회원정보를 입력해 주세요.");
-            System.out.print("ID: ");
-            String id = input.nextLine();
-            System.out.print("PW: ");
-            String pw = input.nextLine();
-            System.out.print("이름: ");
-            String name = input.nextLine();
-            System.out.print("나이: ");
-            int age = input.nextInt();
-            System.out.println("관심사를 골라주세요. \n(0.총류, 1.철학, 2.종교, 3.사회과학, 4.자연과학, 5.기술과학, 6.예술, 7.언어, 8.문학, 9.역사) ");
-            int userinterestNum = input.nextInt();
-            String userinterest = switch (userinterestNum) {
-                case 0 -> "총류";
-                case 1 -> "철학";
-                case 2 -> "종교";
-                case 3 -> "사회과학";
-                case 4 -> "자연과학";
-                case 5 -> "기술과학";
-                case 6 -> "예술";
-                case 7 -> "언어";
-                case 8 -> "문학";
-                case 9 -> "역사";
-                default -> null;
-            };
-            user = new User(id, pw, name, null, age, userinterest, null);
-            inputUser(user);
-            System.out.println("회원가입이 완료되었습니다.");
+        System.out.println("회원정보를 입력해 주세요.");
+        System.out.print("ID: ");
+        String id = input.nextLine();
+        System.out.print("PW: ");
+        String pw = input.nextLine();
+        System.out.print("이름: ");
+        String name = input.nextLine();
+        System.out.print("나이: ");
+        int age = input.nextInt();
+        System.out.println("관심사를 골라주세요. \n(0.총류, 1.철학, 2.종교, 3.사회과학, 4.자연과학, 5.기술과학, 6.예술, 7.언어, 8.문학, 9.역사) ");
+        int userinterestNum = input.nextInt();
+        String userinterest = switch (userinterestNum) {
+            case 0 -> "총류";
+            case 1 -> "철학";
+            case 2 -> "종교";
+            case 3 -> "사회과학";
+            case 4 -> "자연과학";
+            case 5 -> "기술과학";
+            case 6 -> "예술";
+            case 7 -> "언어";
+            case 8 -> "문학";
+            case 9 -> "역사";
+            default -> null;
+        };
+        user = new User(id, pw, name, null, age, userinterest, null);
+        inputUser(user);
+        System.out.println("회원가입이 완료되었습니다.");
     }
     // 사용자 정보 입력
     public void inputUser(User user) {
         String sql = "insert into usertbl values(?,?,?,null,?,?,null)";
         try {
-            Connection conn = connect.getConnection();
-            PreparedStatement pstmt = conn.prepareStatement(sql);
+            PreparedStatement pstmt = this.conn.prepareStatement(sql);
             pstmt.setString(1, user.getUserid());
             pstmt.setString(2, user.getUserpw());
             pstmt.setString(3, user.getUsername());
@@ -88,7 +217,6 @@ public class SHLibraryManager {
             e.printStackTrace();
         }
     }
-
     // 로그인 메뉴 실행
     public boolean login() {
         Scanner input = new Scanner(System.in);
@@ -116,8 +244,7 @@ public class SHLibraryManager {
         String sql = "select * from usertbl where userid = ?";
         User user = null;
         try {
-            Connection conn = connect.getConnection();
-            PreparedStatement pstmt = conn.prepareStatement(sql);
+            PreparedStatement pstmt = this.conn.prepareStatement(sql);
             pstmt.setString(1, pUserid);
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
@@ -137,115 +264,4 @@ public class SHLibraryManager {
         }
         return user;
     }
-
-    //  메인 메뉴 실행
-    public boolean MainMenuProcess(){
-        while(true){
-            boolean endFlag=false;
-            MenuManager.mainMenu();
-            int select=MenuManager.menuInput(MenuManager.LIBRARY, MenuManager.LOGOUT);
-            switch(select){
-                case MenuManager.LIBRARY:
-                    this.LibraryProcess();
-                    break;
-                case MenuManager.MYINFO:
-                    this.MemberProcess();
-                    break;
-                case MenuManager.ADMIN:
-                    this.AdminProcess();
-                    break;
-                case MenuManager.LOGOUT:
-                    endFlag=true;
-            }
-            if(endFlag){
-                System.out.println("로그아웃됨.");
-                currentUser = null;
-                return false;
-            }
-        }
-    }
-    //  도서관 메뉴 실행
-    public void LibraryProcess(){
-        while(true) {
-            boolean endFlag = false;
-            LibraryManager.libraryMenu();
-            int select = MenuManager.menuInput(LibraryManager.BOOKSEARCH,LibraryManager.EXITLIBRARY);
-            switch (select) {
-                case LibraryManager.BOOKSEARCH:
-                    LibraryManager.BookSearchProcess();
-                    break;
-                case LibraryManager.BESTSELLER:
-                    LibraryManager.BestsellerProcess();
-                    break;
-                case LibraryManager.INTEREST:
-                    LibraryManager.InterestCategoryProcess();
-                    break;
-                case LibraryManager.BOOKRETURN:
-                    LibraryManager.BookReturnProcess();
-                    break;
-                case LibraryManager.BOOKREQUEST:
-                    LibraryManager.BookRequestProcess();
-                    break;
-                case LibraryManager.EXITLIBRARY:
-                    endFlag = true;
-                    break;
-            }
-            if (endFlag) {
-                break;
-            }
-        }
-    }
-    //  회원 메뉴 실행
-    public void MemberProcess(){
-        while(true) {
-            boolean endFlag = false;
-            MemberManager.memberMenu();
-            int select = MenuManager.menuInput(MemberManager.MYBOOK, MemberManager.EXITMEMBER);
-            switch (select) {
-                case MemberManager.MYBOOK:
-                    MemberManager.RentalStatusProcess();
-                    break;
-                case MemberManager.MYINFO:
-                    MemberManager.MyInfoProcess();
-                    break;
-                case MemberManager.DELAY:
-                    MemberManager.OverdueCheckProcess();
-                    break;
-                case MemberManager.EXITMEMBER:
-                    endFlag = true;
-                    break;
-            }
-            if (endFlag) {
-                break;
-            }
-        }
-    }
-    //  관리자 메뉴 실행
-    public void AdminProcess(){
-        while(true){
-            boolean endFlag=false;
-            AdminManager.AdminMenu();
-            int select=MenuManager.menuInput(AdminManager.MEMBERADMIN, AdminManager.EXITADMIN);
-            switch(select){
-                case AdminManager.MEMBERADMIN :
-                    AdminManager.MemberAdminProcess();
-                    break;
-                case AdminManager.BOOKADMIN:
-                    AdminManager.BookAdminProcess();
-                    break;
-                case AdminManager.GRADEADMIN:
-                    AdminManager.GradeAdminProcess();
-                    break;
-                case AdminManager.BLACKADMIN:
-                    AdminManager.BlackAdminProcess();
-                    break;
-                case AdminManager.EXITADMIN:
-                    endFlag=true;
-                    break;
-            }
-            if(endFlag){
-                break;
-            }
-        }
-    }
-}
+}// 클래스 끝

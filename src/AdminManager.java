@@ -5,115 +5,115 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class AdminManager {
-    //  관리자 메뉴-상위
-    public final static int MEMBERADMIN=1;
-    public final static int BOOKADMIN=2;
-    public final static int GRADEADMIN=3;
-    public final static int BLACKADMIN=4;
-    public final static int EXITADMIN=5;
-    //  회원 정보 메뉴
-    public final static int CHECKMEMBERADMIN=1;
-    public final static int UPDATEMEMBERADMIN=2;
-    public final static int EXITMEMBERADMIN=3;
-    //  도서정보 메뉴
-    public final static int CHECKREQUEST=1;
-    public final static int BUYBOOK=2;
-    public final static int EXITBOOKADMIN=3;
-    //  회원등급 메뉴
-    public final static int CHECKRANK=1;
-    public final static int UPDATERANK=2;
-    public final static int EXITGRADEADMIN=3;
-    // 연체대상자 메뉴
-    public final static int CHECKOVERDUE=1;
-    public final static int CHECKBLACKLIST=2;
-    public final static int EXITBLACKADMIN=3;
+    //* 멤버 변수 부
+    private Connection conn;
+    private Statement stmt;
+    private User currentUser= null;
 
-
-    //  관리자 메뉴 출력-상위
-    public static void AdminMenu(){
-        System.out.println("1. 회원정보 관리");
-        System.out.println("2. 도서정보 관리");
-        System.out.println("3. 회원등급 관리");
-        System.out.println("4. 연체자 정보 조회");
-        System.out.println("5. 관리자모드 나가기");
-    }
-    //  회원정보 메뉴 출력
-    public static void memberAdmin(){
-        System.out.println("1. 회원정보 조회");
-        System.out.println("2. 회원정보 수정");
-        System.out.println("3. 회원정보 관리 나가기");
-    }
-    //  도서정보 메뉴 출력
-    public static void bookadmin(){
-        System.out.println("1. 신청도서 확인/처리");
-        System.out.println("2. 도서 구매");
-        System.out.println("3. 도서관리 나가기");
-    }
-    //  회원등급 메뉴 출력
-    public static void rateAdmin(){
-        System.out.println("1. 회원등급 확인");
-        System.out.println("2. 회원등급 수정");
-        System.out.println("3. 회원등급 나가기");
-    }
-    // 연체대상자 메뉴 출력
-    public static void blackAdmin(){
-        System.out.println("1. 연체대상자 확인");
-        System.out.println("2. 장기연체자 확인");
-        System.out.println("3. 연체대상자 메뉴 나가기");
-    }
-
-    //  회원정보 관리 메뉴 실행
-    public static void MemberAdminProcess(){
-        while(true){
-            boolean endFlag=false;
-            memberAdmin();
-            int select=MenuManager.menuInput(CHECKMEMBERADMIN, EXITMEMBERADMIN);
-            switch(select){
-                case CHECKMEMBERADMIN:
+    //<<메뉴 함수>>
+    // 회원정보 관리 메뉴 실행
+// 회원 관리 메뉴 실행
+    public void memberAdminProcess() {
+        while (true) {
+            boolean endFlag = false;
+            MenuManager.memberAdmin();  // 메뉴 출력
+            int select = MenuManager.menuInput(MenuManager.CHECKMEMBERADMIN, MenuManager.EXITMEMBERADMIN);
+            switch (select) {
+                case MenuManager.CHECKMEMBERADMIN:
                     break;
-                case UPDATEMEMBERADMIN:
+                case MenuManager.UPDATEMEMBERADMIN:
                     break;
-                case EXITMEMBERADMIN:
-                    endFlag=true;
+                case MenuManager.EXITMEMBERADMIN:
+                    endFlag = true;
                     break;
             }
-            if(endFlag){
+            if (endFlag) {
                 break;
             }
         }
     }
 
-    //  도서정보 관리 메뉴 실행
-    public static void BookAdminProcess(){
-        while(true){
-            boolean endFlag=false;
-            bookadmin();
-            int select=MenuManager.menuInput(CHECKREQUEST, EXITBOOKADMIN);
-            switch(select){
-                case CHECKREQUEST:
+    // 도서정보 관리 메뉴 실행
+    public void bookAdminProcess() {
+        while (true) {
+            boolean endFlag = false;
+            MenuManager.bookAdmin();  // 메뉴 출력
+            int select = MenuManager.menuInput(MenuManager.CHECKREQUEST, MenuManager.EXITBOOKADMIN);
+            switch (select) {
+                case MenuManager.CHECKREQUEST:
+                    this.bookAdmin();
                     break;
-                case BUYBOOK:
+                case MenuManager.BUYBOOK:
                     break;
-                case EXITBOOKADMIN:
-                    endFlag=true;
+                case MenuManager.EXITBOOKADMIN:
+                    endFlag = true;
                     break;
             }
-            if(endFlag){
+            if (endFlag) {
                 break;
             }
         }
     }
 
+    // 회원등급 메뉴 실행
+    public void gradeAdminProcess() {
+        while (true) {
+            boolean endFlag = false;
+            MenuManager.rateAdmin();  // 메뉴 출력
+            int select = MenuManager.menuInput(MenuManager.CHECKRANK, MenuManager.EXITGRADEADMIN);
+            switch (select) {
+                case MenuManager.CHECKRANK:
+                    break;
+                case MenuManager.UPDATERANK:
+                    this.gradeAdmin();
+                    break;
+                case MenuManager.EXITGRADEADMIN:
+                    endFlag = true;
+                    break;
+            }
+            if (endFlag) {
+                break;
+            }
+        }
+    }
 
-    public void bookAdmin() throws SQLException {
-        String requestquery = "select * from requesttbl where comrequest='n'";
-        DBConnect db = new DBConnect();
-        db.initDBConnect();
+    // 연체대상자 메뉴 실행
+    public void blackAdminProcess() {
+        while (true) {
+            boolean endFlag = false;
+            MenuManager.blackAdmin();  // 메뉴 출력
+            int select = MenuManager.menuInput(MenuManager.CHECKOVERDUELIST, MenuManager.EXITBLACKADMIN);
+            switch (select) {
+                case MenuManager.CHECKOVERDUELIST:
+                    break;
+                case MenuManager.CHECKBLACKLIST:
+                    break;
+                case MenuManager.EXITBLACKADMIN:
+                    endFlag = true;
+                    break;
+            }
+            if (endFlag) {
+                break;
+            }
+        }
+    }
 
-        try (Connection conn = db.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(requestquery)) {
+    // <<기능 함수부>>
+    // 초기함수
+    public AdminManager(Connection connect,User user) {
+        try {
+            this.conn = connect;
+            this.stmt = this.conn.createStatement();
+            this.currentUser = user;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
+    public void bookAdmin() {
+        String requestquery = "SELECT * FROM requesttbl WHERE comrequest='n'";
+        try {
+            ResultSet rs = stmt.executeQuery(requestquery);
             Scanner input = new Scanner(System.in);
 
             while (rs.next()) {
@@ -134,26 +134,26 @@ public class AdminManager {
                     try (PreparedStatement pstmt = conn.prepareStatement(updaterequestquery)) {
                         pstmt.setInt(1, num);
                         pstmt.executeUpdate();
-                        System.out.println("책을 구매하여 책 목록에 추가하였습니다.");
+                        System.out.println("해당 책을 구매 신청하였습니다.");
+                    } catch (SQLException e) {
+                        System.out.println("책을 업데이트하는 도중 오류가 발생했습니다.");
+                        e.printStackTrace();
                     }
                 } else {
                     System.out.println("요청이 반려되었습니다.");
                 }
             }
+        } catch (SQLException e) {
+            System.out.println("데이터베이스 연결 또는 쿼리 실행 중 오류가 발생했습니다.");
+            e.printStackTrace();
         }
     }
 
-
-    public void gradeAdmin() throws SQLException {
+    public void gradeAdmin() {
         // userDiffMap을 날짜와 대여 횟수 정보로 채운다.
         Map<String, GradeInfo> userDiffMap = datediff();
-
         String updatedatequery = "UPDATE usertbl SET usergrade = ? WHERE userid = ?";
-        DBConnect db = new DBConnect();
-        db.initDBConnect();
-
-        try (Connection conn = db.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(updatedatequery)) {
+        try (PreparedStatement pstmt = conn.prepareStatement(updatedatequery)) {
 
             // 회원 정보를 하나씩 처리
             for (Map.Entry<String, GradeInfo> entry : userDiffMap.entrySet()) {
@@ -186,7 +186,6 @@ public class AdminManager {
             e.printStackTrace(); // 예외 처리
         }
     }
-
     public Map<String, GradeInfo> datediff() {
         Map<String, GradeInfo> userDaysMap = new HashMap<>();
 
@@ -196,18 +195,15 @@ public class AdminManager {
         java.sql.Date curDate = new java.sql.Date(currentSeconds);
 
         // usertbl에서 id, name, date, grade, 대여 횟수 가져오기
-        String datequery = "SELECT u.userid, u.username, u.userdate, u.usergrade, COUNT(r.personid) AS rent_count " +
+        String datequery = "SELECT u.userid, u.username, u.userdate, u.usergrade, COUNT(r.userid) AS rent_count " +
                 "FROM usertbl u " +
-                "JOIN renttbl r ON u.userid = r.personid " +
+                "JOIN renttbl r ON u.userid = r.userid " +
                 "GROUP BY u.userid, u.username, u.userdate, u.usergrade";
 
         DBConnect db = new DBConnect();
         db.initDBConnect();
 
-        try (Connection conn = db.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(datequery)) {
-
+        try (ResultSet rs = stmt.executeQuery(datequery)) {
             // 결과 처리
             while (rs.next()) {
                 String id = rs.getString("userid");
@@ -227,52 +223,7 @@ public class AdminManager {
         }
         return userDaysMap;
     }
-
-
 //    public void blackAdmin(){
 //
 //    }
-
-    //  회원등급 메뉴 실행
-    public static void GradeAdminProcess(){
-        while(true){
-            boolean endFlag=false;
-            rateAdmin();
-            int select=MenuManager.menuInput(CHECKRANK, EXITGRADEADMIN);
-            switch(select){
-                case CHECKRANK:
-                    break;
-                case UPDATERANK:
-                    break;
-                case EXITGRADEADMIN:
-                    endFlag=true;
-                    break;
-            }
-            if(endFlag){
-                break;
-            }
-        }
-    }
-    //  연체대상자 메뉴 실행
-    public static void BlackAdminProcess(){
-        while(true){
-            boolean endFlag=false;
-            blackAdmin();
-            int select=MenuManager.menuInput(CHECKOVERDUE, EXITBLACKADMIN);
-            switch(select){
-                case CHECKOVERDUE:
-                    break;
-                case CHECKBLACKLIST:
-                    break;
-                case EXITBLACKADMIN:
-                    endFlag=true;
-                    break;
-            }
-            if(endFlag){
-                break;
-            }
-        }
-
-    }
-
 }
