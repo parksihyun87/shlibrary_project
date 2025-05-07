@@ -62,4 +62,11 @@ public class Request {
     public void setComrequest(String comrequest) {
         this.comrequest = comrequest;
     }
+
+    public String toString(){
+        return String.format(
+                "신청번호: %d | 신청자 ID: %s | 제목: %s | 저자: %s | 출판사: %s | 상태: %s",
+                requestnum, userid, title, author, publisher, comrequest
+        );
+    }
 }
