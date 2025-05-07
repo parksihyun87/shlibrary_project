@@ -72,39 +72,39 @@ public class LibraryManager {
     }
 
     // 도서 분류별 추천 실행
-    public void interestCategoryProcess() {
-        while (true) {
-            boolean endFlag = false;
-            MenuManager.interestCategory();
-            int select = MenuManager.menuInput(MenuManager.GENERALWORKS, MenuManager.EXITCATEGORY);
-            switch (select) {
-                case MenuManager.GENERALWORKS:
-                    break;
-                case MenuManager.PHILOSOPHY:
-                    break;
-                case MenuManager.RELIGION:
-                    break;
-                case MenuManager.SOCIALSCIENCE:
-                    break;
-                case MenuManager.NATURALSCIENCE:
-                    break;
-                case MenuManager.TECHNOLOGY:
-                    break;
-                case MenuManager.ART:
-                    break;
-                case MenuManager.LANGUAGE:
-                    break;
-                case MenuManager.LITERATURE:
-                    break;
-                case MenuManager.HISTORY:
-                    break;
-                case MenuManager.EXITCATEGORY:
-                    endFlag = true;
-                    break;
-            }
-            if (endFlag) break;
-        }
-    }
+//    public void interestCategoryProcess() {
+//        while (true) {
+//            boolean endFlag = false;
+//            MenuManager.interestCategory();
+//            int select = MenuManager.menuInput(MenuManager.GENERALWORKS, MenuManager.EXITCATEGORY);
+//            switch (select) {
+//                case MenuManager.GENERALWORKS:
+//                    break;
+//                case MenuManager.PHILOSOPHY:
+//                    break;
+//                case MenuManager.RELIGION:
+//                    break;
+//                case MenuManager.SOCIALSCIENCE:
+//                    break;
+//                case MenuManager.NATURALSCIENCE:
+//                    break;
+//                case MenuManager.TECHNOLOGY:
+//                    break;
+//                case MenuManager.ART:
+//                    break;
+//                case MenuManager.LANGUAGE:
+//                    break;
+//                case MenuManager.LITERATURE:
+//                    break;
+//                case MenuManager.HISTORY:
+//                    break;
+//                case MenuManager.EXITCATEGORY:
+//                    endFlag = true;
+//                    break;
+//            }
+//            if (endFlag) break;
+//        }
+//    }
 
     // 책 반납 메뉴 실행
     public void bookReturnProcess() {
@@ -117,6 +117,7 @@ public class LibraryManager {
                     this.returnBook();
                     break;
                 case MenuManager.BOOKPROLONG:
+                    this.prolongBook();
                     break;
                 case MenuManager.EXITBOOKRETURN:
                     endFlag = true;
@@ -381,7 +382,7 @@ public class LibraryManager {
         LocalDate today = LocalDate.now();
 
         try{
-            myBook(currentUser);
+            myRentedBook(currentUser);
             System.out.println("반납할 책 isbn 입력");
             int inputIsbn=input.nextInt();
             input.nextLine();
@@ -406,7 +407,7 @@ public class LibraryManager {
         }
     }
 
-    public void myBook(User user) throws SQLException {
+    public void myRentedBook(User user) throws SQLException {
         ArrayList<Book> bookList = new ArrayList<>();
         ArrayList<Rent> rentList = new ArrayList<>();
 
@@ -434,6 +435,38 @@ public class LibraryManager {
             System.out.print(", 반납일: "+rentList.get(i).getDuedate());
             System.out.print(", 연장여부: "+str);
             System.out.println();
+        }
+    }
+
+    public void prolongBook(){
+        try{
+            myRentedBook(currentUser);
+            System.out.println("연장할 책 isbn을 입력하세요");
+            int inputIsbn= input.nextInt();
+            input.nextLine();
+            Book book = getBook(inputIsbn);
+            Rent rent = getNotReturnRent(inputIsbn);
+            System.out.println("연장 하시겠습니까?");
+            if(confirm()){
+                if(rent.getProlong()){
+                    System.out.println("이미 연장한 책입니다.");
+                    return;
+                }
+                String sql= "update renttbl set prolong = true, duedate = duedate+6 where userid=? and isbn=? and turnin=false";
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                pstmt.setString(1,currentUser.getUserid());//수정
+                pstmt.setInt(2,inputIsbn);
+                int updated = pstmt.executeUpdate();
+                if (updated > 0) {
+                    System.out.println("정상적으로 연장되었습니다.");
+                } else {
+                    System.out.println("연장 실패 - 해당 대여 기록이 없습니다.");
+                }
+            } else {
+                System.out.println("연장이 취소되었습니다.");
+            }
+        } catch (SQLException e){
+            e.printStackTrace();
         }
     }
 
@@ -469,6 +502,5 @@ public class LibraryManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
     }
 }

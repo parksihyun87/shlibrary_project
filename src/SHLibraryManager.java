@@ -96,8 +96,8 @@ public class SHLibraryManager {
                 case MenuManager.BESTSELLER:
                     lbM.bestsellerProcess();
                     break;
-                case MenuManager.INTEREST:
-                    lbM.interestCategoryProcess();
+                case MenuManager.BOOKEDBOOK:
+                    //예약도서 대출 넣기.
                     break;
                 case MenuManager.BOOKRETURN:
                     lbM.bookReturnProcess();

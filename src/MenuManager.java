@@ -126,7 +126,7 @@ public class MenuManager {
     //  도서관 메뉴-상위
     public final static int BOOKSEARCH=1;
     public final static int BESTSELLER=2;
-    public final static int INTEREST=3;
+    public final static int BOOKEDBOOK=3;
     public final static int BOOKRETURN=4;
     public final static int BOOKREQUEST=5;
     public final static int EXITLIBRARY=6;
@@ -143,18 +143,7 @@ public class MenuManager {
     // 베스트셀러 메뉴
     public final static int BESTSELLERBOOK = 1;
     public final static int EXITBESTSELLERBOOK = 2;
-    // 관심분야 도서도서 분류 메뉴
-    public final static int GENERALWORKS = 1;       // 총류
-    public final static int PHILOSOPHY = 2;         // 철학
-    public final static int RELIGION = 3;           // 종교
-    public final static int SOCIALSCIENCE = 4;      // 사회과학
-    public final static int NATURALSCIENCE = 5;     // 자연과학
-    public final static int TECHNOLOGY = 6;         // 기술과학
-    public final static int ART = 7;                // 예술
-    public final static int LANGUAGE = 8;           // 언어
-    public final static int LITERATURE = 9;         // 문학
-    public final static int HISTORY = 10;           // 역사
-    public final static int EXITCATEGORY = 11;
+
     //  책 반납 메뉴
     public final static int BOOKTURNIN=1;
     public final static int BOOKPROLONG=2;
@@ -168,7 +157,7 @@ public class MenuManager {
     public static void libraryMenu(){
         System.out.println("1. 도서 검색");
         System.out.println("2. 베스트셀러");
-        System.out.println("3. 관심분야 도서");
+        System.out.println("3. 예약도서 대출");
         System.out.println("4. 도서 반납");
         System.out.println("5. 도서 신청");
         System.out.println("6. 메인메뉴로");
@@ -191,20 +180,6 @@ public class MenuManager {
     public static void bestsellerMenu() {
         System.out.println("1. 베스트셀러 보기");
         System.out.println("2. 나가기");
-    }
-    // 도서 분류 메뉴 출력
-    public static void interestCategory(){
-        System.out.println("1. 총류");
-        System.out.println("2. 철학");
-        System.out.println("3. 종교");
-        System.out.println("4. 사회과학");
-        System.out.println("5. 자연과학");
-        System.out.println("6. 기술과학");
-        System.out.println("7. 예술");
-        System.out.println("8. 언어");
-        System.out.println("9. 문학");
-        System.out.println("10. 역사");
-        System.out.println("11. 분류 검색 나가기");
     }
     //  책 반납 메뉴 출력
     public static void bookreturn(){
