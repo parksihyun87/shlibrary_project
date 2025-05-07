@@ -421,6 +421,7 @@ public class LibraryManager {
         }
     }
 
+    //도서 신청 메서드
     public static void applyForBookRequest(String userid){
         Scanner input=new Scanner(System.in);
         System.out.print("신청할 도서 제목을 입력하세요: ");
@@ -431,7 +432,7 @@ public class LibraryManager {
         String publisher=input.nextLine();
         System.out.println("신청할 도서의 출판연도를 입력하세요: ");
         int pubyear=input.nextInt();
-        String query="insert into requesttbl (userid, title, author, publisher, pubyear, comrequest) values(?, ?, ?, ?, ?, 'N'";
+        String query="insert into requesttbl (userid, title, author, publisher, pubyear, comrequest) values(?, ?, ?, ?, ?, 'n')";
 
         DBConnect db=new DBConnect();
         db.initDBConnect();
