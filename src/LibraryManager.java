@@ -1,3 +1,4 @@
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -108,146 +109,343 @@ public class LibraryManager {
     }
 
 
-    // 책 검색 메뉴 실행
-    public static void BookSearchProcess(){
-        while(true) {
-            boolean endFlag = false;
-            searchbook();
-            int select = MenuManager.menuInput(NORMALSEARCH,EXITBOOKSEARCH);
-            switch (select) {
-                case NORMALSEARCH:
+import java.sql.*;
+import java.time.LocalDate;
+import java.util.Scanner;
 
+
+public class LibraryManager {
+    //* 멤버 변수 부
+    private Connection conn;
+    private Statement stmt;
+    private User currentUser= null;
+    Scanner input = new Scanner(System.in);
+    // <<메뉴 함수 부>>
+    // 책 검색 메뉴 실행
+    public void bookSearchProcess() {
+        while (true) {
+            boolean endFlag = false;
+            MenuManager.searchbook();
+            int select = MenuManager.menuInput(MenuManager.NORMALSEARCH, MenuManager.EXITBOOKSEARCH);
+            switch (select) {
+                case MenuManager.NORMALSEARCH:
                     break;
-                case SPECIFICSEARCH:
-                    DetailedSearchProcess();
+                case MenuManager.SPECIFICSEARCH:
+                    detailedSearchProcess();
                     break;
-                case EXITBOOKSEARCH:
+                case MenuManager.EXITBOOKSEARCH:
                     endFlag = true;
                     break;
             }
-            if (endFlag) {
-                break;
-            }
+            if (endFlag) break;
         }
     }
+
     // 책 상세 검색 메뉴 실행
-    public static void DetailedSearchProcess(){
-        while(true) {
+    public void detailedSearchProcess() {
+        while (true) {
             boolean endFlag = false;
-            detailedSearch();
-            int select = MenuManager.menuInput(TITLESEARCH,EXITDETAILEDSEARCH);
+            MenuManager.detailedSearch();
+            int select = MenuManager.menuInput(MenuManager.TITLESEARCH, MenuManager.EXITDETAILEDSEARCH);
             switch (select) {
-                case TITLESEARCH:
+                case MenuManager.TITLESEARCH:
                     break;
-                case AUTHORSEARCH:
+                case MenuManager.AUTHORSEARCH:
                     break;
-                case PUBLISHERSEARCH:
+                case MenuManager.PUBLISHERSEARCH:
                     break;
-                case KEYWORDSEARCH:
+                case MenuManager.KEYWORDSEARCH:
                     break;
-                case EXITDETAILEDSEARCH:
+                case MenuManager.EXITDETAILEDSEARCH:
                     endFlag = true;
                     break;
             }
-            if (endFlag) {
-                break;
-            }
+            if (endFlag) break;
         }
     }
+
     // 베스트셀러 메뉴 실행
-    public static void BestsellerProcess() {
+    public void bestsellerProcess() {
         while (true) {
-            boolean endFlag=false;
-            bestsellerMenu();
-            int select = MenuManager.menuInput(BESTSELLER, EXITBESTSELLERBOOK);
+            boolean endFlag = false;
+            MenuManager.bestsellerMenu();
+            int select = MenuManager.menuInput(MenuManager.BESTSELLERBOOK, MenuManager.EXITBESTSELLERBOOK);
             switch (select) {
-                case BESTSELLERBOOK:
+                case MenuManager.BESTSELLERBOOK:
+                    this.printTop5Books();
                     break;
-                case EXITBESTSELLERBOOK:
+                case MenuManager.EXITBESTSELLERBOOK:
                     endFlag = true;
                     break;
             }
-            if (endFlag) {
-                break;
-            }
+            if (endFlag) break;
         }
     }
+
     // 도서 분류별 추천 실행
-    public static void InterestCategoryProcess() {
+    public void interestCategoryProcess() {
         while (true) {
             boolean endFlag = false;
-            interestCategory();
-            int select = MenuManager.menuInput(GENERALWORKS, EXITCATEGORY);
+            MenuManager.interestCategory();
+            int select = MenuManager.menuInput(MenuManager.GENERALWORKS, MenuManager.EXITCATEGORY);
             switch (select) {
-                case GENERALWORKS:
+                case MenuManager.GENERALWORKS:
                     break;
-                case PHILOSOPHY:
+                case MenuManager.PHILOSOPHY:
                     break;
-                case RELIGION:
+                case MenuManager.RELIGION:
                     break;
-                case SOCIALSCIENCE:
+                case MenuManager.SOCIALSCIENCE:
                     break;
-                case NATURALSCIENCE:
+                case MenuManager.NATURALSCIENCE:
                     break;
-                case TECHNOLOGY:
+                case MenuManager.TECHNOLOGY:
                     break;
-                case ART:
+                case MenuManager.ART:
                     break;
-                case LANGUAGE:
+                case MenuManager.LANGUAGE:
                     break;
-                case LITERATURE:
+                case MenuManager.LITERATURE:
                     break;
-                case HISTORY:
+                case MenuManager.HISTORY:
                     break;
-                case EXITCATEGORY:
+                case MenuManager.EXITCATEGORY:
                     endFlag = true;
                     break;
             }
-            if (endFlag) {
-                break;
-            }
+            if (endFlag) break;
         }
     }
+
     // 책 반납 메뉴 실행
-    public static void BookReturnProcess(){
-        while(true) {
+    public void bookReturnProcess() {
+        while (true) {
             boolean endFlag = false;
-            bookreturn();
-            int select = MenuManager.menuInput(BOOKTURNIN,EXITBOOKRETURN);
+            MenuManager.bookreturn();
+            int select = MenuManager.menuInput(MenuManager.BOOKTURNIN, MenuManager.EXITBOOKRETURN);
             switch (select) {
-                case BOOKTURNIN:
+                case MenuManager.BOOKTURNIN:
                     break;
-                case BOOKPROLONG:
+                case MenuManager.BOOKPROLONG:
                     break;
-                case EXITBOOKRETURN:
+                case MenuManager.EXITBOOKRETURN:
                     endFlag = true;
                     break;
             }
-            if (endFlag) {
-                break;
-            }
+            if (endFlag) break;
         }
     }
+
     // 책 신청 메뉴 실행
-    public static void BookRequestProcess() {
+    public void bookRequestProcess() {
         while (true) {
             boolean endFlag = false;
-            bookRequestMenu();
-            int select = MenuManager.menuInput(REQUESTBOOK, EXITBOOKREQUEST);
+            MenuManager.bookRequestMenu();
+            int select = MenuManager.menuInput(MenuManager.REQUESTBOOK, MenuManager.EXITBOOKREQUEST);
             switch (select) {
+
                 case REQUESTBOOK:
                     //applyForBookRequest(userid);
+
+                case MenuManager.REQUESTBOOK:
+
                     break;
-                case CHECKDUPLICATE:
+                case MenuManager.CHECKDUPLICATE:
                     break;
-                case EXITBOOKREQUEST:
+                case MenuManager.EXITBOOKREQUEST:
                     endFlag = true;
                     break;
             }
-            if (endFlag) {
-                break;
+            if (endFlag) break;
+        }
+    }
+
+    // <<기능 함수 부>>
+    // 초기 세팅 함수
+    public LibraryManager(Connection connect,User user){
+        try{
+            this.conn = connect;
+            this.stmt = this.conn.createStatement();
+            this.currentUser= user;
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+    // << 베스트 셀러 >>
+    public void printTop5Books(){
+        String sql = """
+        SELECT b.isbn, b.callnum, b.title, b.author, b.publisher, b.pubyear, b.rentnum,
+               k.keyword1, k.keyword2, k.keyword3, k.keyword4, k.keyword5, k.keyword6
+        FROM booktbl b
+        JOIN keywordtbl k ON b.isbn = k.isbn
+        ORDER BY b.rentnum DESC
+        LIMIT 5
+    """;
+
+        try {
+            ResultSet rs = this.stmt.executeQuery(sql);
+            System.out.println("Top 5 BEST Selling Books.");
+            int rank = 1;
+            while (rs.next()) {
+                System.out.println(rank + "위:");
+                this.printBookInfo(rs);
+                rank++;
+            }
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+    public void printBookInfo(ResultSet rs) throws SQLException {
+        int isbn = rs.getInt("isbn");
+        String callnum = rs.getString("callnum");
+        String title = rs.getString("title");
+        String author = rs.getString("author");
+        String publisher = rs.getString("publisher");
+        int pubyear = rs.getInt("pubyear");
+        int rentnum = rs.getInt("rentnum");
+
+        String[] keywords = new String[6];
+        for (int i = 0; i < 6; i++) {
+            keywords[i] = rs.getString("keyword" + (i + 1));
+        }
+
+        System.out.printf("ISBN: %d | 청구기호: %s | 제목: %s | 저자: %s | 출판사: %s | 출판연도: %d | 대여횟수: %d\n",
+                isbn, callnum, title, author, publisher, pubyear, rentnum);
+
+        System.out.print("키워드: ");
+        boolean hasKeyword = false;
+        for (String kw : keywords) {
+            if (kw != null && !kw.isEmpty()) {
+                System.out.print("[" + kw + "] ");
+                hasKeyword = true;
             }
         }
+        if (!hasKeyword) System.out.print("없음");
+        System.out.println("\n-----------------------------");
+    }
+
+    // <<도서 예약>>
+    public void reserveBook(int inputIsbn) {
+        LocalDate today = LocalDate.now();
+        LocalDate returnDate = today.plusDays(13);
+        try {
+            Book book = getRentedBook(inputIsbn);
+            Rent rent = getBookedRent(inputIsbn);// 대여중 책 확인
+            boolean isRented = book != null;
+            if (isRented) {
+                // 대출중 → 예약 가능 여부 확인
+                if (countUserReservation(inputIsbn, currentUser) > 0) {
+                    System.out.println("이미 예약중인 책입니다.");
+                    return;
+                }
+                int reserveCount = getReserveCount(inputIsbn);
+                printBook(book);
+                System.out.println("대출상태: 대출중");
+                System.out.println("대출기간: " + rent.getRentdate()+"~"+rent.getDuedate());
+                System.out.println("예약대기자: " + reserveCount + "명");
+
+                if (reserveCount >= 3) {
+                    System.out.println("예약인원 초과로 예약 하실 수 없습니다.");
+                    return;
+                }
+
+                System.out.println("예약 하시겠습니까? (y/n)");
+                if (confirm()) {
+                    reserveBook(book, today, reserveCount + 1);
+                } else {
+                    System.out.println("예약이 취소되었습니다.");
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    private Rent getBookedRent(int isbn) throws SQLException {
+        String sql = "SELECT * FROM renttbl r INNER JOIN booktbl b ON r.isbn = b.isbn WHERE r.isbn = ? AND r.turnin = 0";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, isbn);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) return mapRent(rs);
+        }
+        return null;
+    }
+    private Book getRentedBook(int isbn) throws SQLException {
+        String sql = "SELECT * FROM renttbl r INNER JOIN booktbl b ON r.isbn = b.isbn WHERE r.isbn = ? AND r.turnin = 0";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, isbn);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) return mapBook(rs);
+        }
+        return null;
+    }
+    private int getReserveCount(int isbn) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM reservetbl WHERE isbn=? AND reservestatus='예약대기'";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, isbn);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        }
+        return 0;
+    }
+    private int countUserReservation(int isbn, User user) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM reservetbl WHERE isbn=? AND userid=? AND reservestatus='예약대기'";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, isbn);
+            pstmt.setString(2, user.getUserid());
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        }
+        return 0;
+    }
+    private boolean confirm() {
+        String inputYn = input.nextLine().trim().toUpperCase();
+        return inputYn.equals("Y");
+    }
+    private Book mapBook(ResultSet rs) throws SQLException {
+        return new Book(
+                rs.getInt("isbn"),
+                rs.getString("callnum"),
+                rs.getString("title"),
+                rs.getString("author"),
+                rs.getString("publisher"),
+                rs.getInt("pubyear"),
+                rs.getInt("rentnum")
+        );
+    }
+    private Rent mapRent(ResultSet rs) throws SQLException {
+        return new Rent(
+                rs.getInt("rentnumber"),
+                rs.getString("userid"),
+                rs.getInt("isbn"),
+                rs.getDate("rentdate"),
+                rs.getDate("duedate"),
+                rs.getBoolean("prolong"),
+                rs.getDate("turnindate"),
+                rs.getBoolean("turnin")
+        );
+    }
+
+    public void printBook(Book book){
+        System.out.println(book.getIsbn());
+        System.out.println(book.getTitle());
+        System.out.println(book.getAuthor());
+        System.out.println(book.getPublisher());
+        System.out.println(book.getPubyear());
+    }
+    private void reserveBook(Book book, LocalDate today, int position) throws SQLException {
+        String sql = "INSERT INTO reservetbl VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, 0);
+            pstmt.setString(2, currentUser.getUserid());
+            pstmt.setInt(3, book.getIsbn());
+            pstmt.setDate(4, Date.valueOf(today));
+            pstmt.setInt(5, position);
+            pstmt.setString(6, "예약대기");
+            pstmt.executeUpdate();
+        }
+        System.out.println("예약이 완료되었습니다.");
     }
 
     public static void applyForBookRequest(String userid){

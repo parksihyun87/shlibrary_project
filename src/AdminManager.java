@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.Date;
 
 public class AdminManager {
+
     //  관리자 메뉴-상위
     public final static int MEMBERADMIN=1;
     public final static int BOOKADMIN=2;
@@ -59,28 +60,58 @@ public class AdminManager {
         System.out.println("1. 연체대상자 확인");
         System.out.println("2. 장기연체자 확인");
         System.out.println("3. 연체대상자 메뉴 나가기");
-    }
 
-    //  회원정보 관리 메뉴 실행
-    public static void MemberAdminProcess(){
-        while(true){
-            boolean endFlag=false;
-            memberAdmin();
-            int select=MenuManager.menuInput(CHECKMEMBERADMIN, EXITMEMBERADMIN);
-            switch(select){
-                case CHECKMEMBERADMIN:
+    //* 멤버 변수 부
+    private Connection conn;
+    private Statement stmt;
+    private User currentUser= null;
+
+    //<<메뉴 함수>>
+    // 회원정보 관리 메뉴 실행
+// 회원 관리 메뉴 실행
+    public void memberAdminProcess() {
+        while (true) {
+            boolean endFlag = false;
+            MenuManager.memberAdmin();  // 메뉴 출력
+            int select = MenuManager.menuInput(MenuManager.CHECKMEMBERADMIN, MenuManager.EXITMEMBERADMIN);
+            switch (select) {
+                case MenuManager.CHECKMEMBERADMIN:
                     break;
-                case UPDATEMEMBERADMIN:
+                case MenuManager.UPDATEMEMBERADMIN:
                     break;
-                case EXITMEMBERADMIN:
-                    endFlag=true;
+                case MenuManager.EXITMEMBERADMIN:
+                    endFlag = true;
                     break;
             }
-            if(endFlag){
+            if (endFlag) {
+                break;
+            }
+        }
+
+    }
+
+    // 도서정보 관리 메뉴 실행
+    public void bookAdminProcess() {
+        while (true) {
+            boolean endFlag = false;
+            MenuManager.bookAdmin();  // 메뉴 출력
+            int select = MenuManager.menuInput(MenuManager.CHECKREQUEST, MenuManager.EXITBOOKADMIN);
+            switch (select) {
+                case MenuManager.CHECKREQUEST:
+                    this.bookAdmin();
+                    break;
+                case MenuManager.BUYBOOK:
+                    break;
+                case MenuManager.EXITBOOKADMIN:
+                    endFlag = true;
+                    break;
+            }
+            if (endFlag) {
                 break;
             }
         }
     }
+
 
     //  도서정보 관리 메뉴 실행
     public static void BookAdminProcess() throws SQLException {
@@ -144,13 +175,30 @@ public class AdminManager {
 
                 case EXITBOOKADMIN:
                     endFlag=true;
+
+    // 회원등급 메뉴 실행
+    public void gradeAdminProcess() {
+        while (true) {
+            boolean endFlag = false;
+            MenuManager.rateAdmin();  // 메뉴 출력
+            int select = MenuManager.menuInput(MenuManager.CHECKRANK, MenuManager.EXITGRADEADMIN);
+            switch (select) {
+                case MenuManager.CHECKRANK:
+                    break;
+                case MenuManager.UPDATERANK:
+                    this.gradeAdmin();
+                    break;
+                case MenuManager.EXITGRADEADMIN:
+                    endFlag = true;
+
                     break;
             }
-            if(endFlag){
+            if (endFlag) {
                 break;
             }
         }
     }
+
 
     //입력값(N, Y, R)에 따라 도서 신청 목록을 확인할 수 있는 메서드
     public static List<Request> getRequestListByStatus(String status) throws SQLException {
@@ -218,9 +266,80 @@ public class AdminManager {
             }
 
         } catch (SQLException e) {
+
+    // 연체대상자 메뉴 실행
+    public void blackAdminProcess() {
+        while (true) {
+            boolean endFlag = false;
+            MenuManager.blackAdmin();  // 메뉴 출력
+            int select = MenuManager.menuInput(MenuManager.CHECKOVERDUELIST, MenuManager.EXITBLACKADMIN);
+            switch (select) {
+                case MenuManager.CHECKOVERDUELIST:
+                    break;
+                case MenuManager.CHECKBLACKLIST:
+                    break;
+                case MenuManager.EXITBLACKADMIN:
+                    endFlag = true;
+                    break;
+            }
+            if (endFlag) {
+                break;
+            }
+        }
+    }
+
+    // <<기능 함수부>>
+    // 초기함수
+    public AdminManager(Connection connect,User user) {
+        try {
+            this.conn = connect;
+            this.stmt = this.conn.createStatement();
+            this.currentUser = user;
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
+
+    public void bookAdmin() {
+        String requestquery = "SELECT * FROM requesttbl WHERE comrequest='n'";
+        try {
+            ResultSet rs = stmt.executeQuery(requestquery);
+            Scanner input = new Scanner(System.in);
+
+            while (rs.next()) {
+                int num = rs.getInt("requestnum");
+                String id = rs.getString("userid");
+                String title = rs.getString("title");
+                String author = rs.getString("author");
+                String publisher = rs.getString("publisher");
+
+                System.out.println("----------------도서 요청 목록----------------");
+                System.out.println(num + ". " + id + "님이 신청하신 책");
+                System.out.println(title + " | " + author + " | " + publisher + " | ");
+                System.out.println("책을 구입할까요? Y|N");
+                String yn = input.nextLine();
+
+                if (yn.equalsIgnoreCase("Y")) {
+                    String updaterequestquery = "UPDATE requesttbl SET comrequest = 'y' WHERE requestnum = ?";
+                    try (PreparedStatement pstmt = conn.prepareStatement(updaterequestquery)) {
+                        pstmt.setInt(1, num);
+                        pstmt.executeUpdate();
+                        System.out.println("해당 책을 구매 신청하였습니다.");
+                    } catch (SQLException e) {
+                        System.out.println("책을 업데이트하는 도중 오류가 발생했습니다.");
+                        e.printStackTrace();
+                    }
+                } else {
+                    System.out.println("요청이 반려되었습니다.");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("데이터베이스 연결 또는 쿼리 실행 중 오류가 발생했습니다.");
+
+            e.printStackTrace();
+        }
+    }
+
 
     //신청 도서 반려 메서드
     public static void rejectBookRequest(int requestnum){
@@ -240,15 +359,13 @@ public class AdminManager {
 
     //등급 판정(업데이트) 메서드
     public static void gradeAdmin() throws SQLException {
+
+    public void gradeAdmin() {
+
         // userDiffMap을 날짜와 대여 횟수 정보로 채운다.
         Map<String, GradeInfo> userDiffMap = datediff();
-
         String updatedatequery = "UPDATE usertbl SET usergrade = ? WHERE userid = ?";
-        DBConnect db = new DBConnect();
-        db.initDBConnect();
-
-        try (Connection conn = db.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(updatedatequery)) {
+        try (PreparedStatement pstmt = conn.prepareStatement(updatedatequery)) {
 
             // 회원 정보를 하나씩 처리
             for (Map.Entry<String, GradeInfo> entry : userDiffMap.entrySet()) {
@@ -287,8 +404,12 @@ public class AdminManager {
         }
     }
 
+
     //현재날짜와 가입날짜를 비교하여 가입기간을 계산
     public static Map<String, GradeInfo> datediff() {
+
+    public Map<String, GradeInfo> datediff() {
+
         Map<String, GradeInfo> userDaysMap = new HashMap<>();
 
         // 현재 날짜를 SQL 형식으로 받아옴
@@ -305,10 +426,7 @@ public class AdminManager {
         DBConnect db = new DBConnect();
         db.initDBConnect();
 
-        try (Connection conn = db.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(datequery)) {
-
+        try (ResultSet rs = stmt.executeQuery(datequery)) {
             // 결과 처리
             while (rs.next()) {
                 String id = rs.getString("userid");
@@ -328,6 +446,7 @@ public class AdminManager {
         }
         return userDaysMap;
     }
+
 
     public static boolean isLongTermOverdue(String userid) throws SQLException{
         String query="select 1 from renttbl "+
@@ -416,5 +535,10 @@ public class AdminManager {
         }
 
     }
+
+
+//    public void blackAdmin(){
+//
+//    }
 
 }
