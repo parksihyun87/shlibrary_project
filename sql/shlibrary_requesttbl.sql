@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.11, for Win64 (x86_64)
 --
--- Host: localhost    Database: shlibrary
+-- Host: localhost    Database: triggerdb
 -- ------------------------------------------------------
 -- Server version	8.0.11
 
@@ -26,11 +26,12 @@ CREATE TABLE `requesttbl` (
   `requestnum` int(11) NOT NULL AUTO_INCREMENT,
   `userid` char(4) NOT NULL,
   `title` varchar(40) NOT NULL,
-  `author` varchar(30) DEFAULT NULL,
-  `publisher` varchar(30) DEFAULT NULL,
-  `comrequest` char(1) NOT NULL,
+  `author` varchar(30) NOT NULL,
+  `publisher` varchar(30) NOT NULL,
+  `pubyear` int(11) NOT NULL,
+  `comrequest` char(1) NOT NULL DEFAULT 'n',
   PRIMARY KEY (`requestnum`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -39,7 +40,7 @@ CREATE TABLE `requesttbl` (
 
 LOCK TABLES `requesttbl` WRITE;
 /*!40000 ALTER TABLE `requesttbl` DISABLE KEYS */;
-INSERT INTO `requesttbl` VALUES (1,'bbbb','오렌지 베이커리','키티 테이트','윌북','y'),(2,'eeee','인문 건축 기행','유현준',NULL,'y'),(3,'ffff','도파민네이션',NULL,NULL,'y'),(4,'dddd','인간 탐구 보고서','정재은','아울북','y'),(5,'eeee','한권으로 끝내는 임플란트',NULL,NULL,'y');
+INSERT INTO `requesttbl` VALUES (1,'bbbb','빛과 실','한강','문학과지성사',2025,'n'),(2,'dddd','혼모노','성해나','창비',2025,'n'),(3,'gggg','스토너','존 윌리엄스','알에이치코리아',2015,'n'),(4,'eeee','파과','구병모','위즈덤하우스',2018,'n');
 /*!40000 ALTER TABLE `requesttbl` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -52,4 +53,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-02 12:59:20
+-- Dump completed on 2025-05-07 10:12:31
