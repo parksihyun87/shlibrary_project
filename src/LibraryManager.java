@@ -1,5 +1,6 @@
 import java.sql.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class LibraryManager {
@@ -113,6 +114,7 @@ public class LibraryManager {
             int select = MenuManager.menuInput(MenuManager.BOOKTURNIN, MenuManager.EXITBOOKRETURN);
             switch (select) {
                 case MenuManager.BOOKTURNIN:
+                    this.returnBook();
                     break;
                 case MenuManager.BOOKPROLONG:
                     break;
@@ -213,39 +215,53 @@ public class LibraryManager {
         LocalDate today = LocalDate.now();
         LocalDate returnDate = today.plusDays(13);
         try {
-            Book book = getRentedBook(inputIsbn);
-            Rent rent = getBookedRent(inputIsbn);// 대여중 책 확인
-            boolean isRented = book != null;
-            if (isRented) {
-                // 대출중 → 예약 가능 여부 확인
-                if (countUserReservation(inputIsbn, currentUser) > 0) {
-                    System.out.println("이미 예약중인 책입니다.");
-                    return;
-                }
-                int reserveCount = getReserveCount(inputIsbn);
-                printBook(book);
-                System.out.println("대출상태: 대출중");
-                System.out.println("대출기간: " + rent.getRentdate()+"~"+rent.getDuedate());
-                System.out.println("예약대기자: " + reserveCount + "명");
+            //가져오는 쿼리->1. 북 일반 (2. 렌트(turn in 0) or 3. 예약(status:예약대기)) 둘 중 하나의 쿼리결과 !=null 이므로 기준으로 조건문
+            Book book = getBook(inputIsbn);
+            Rent rent = getNotReturnRent(inputIsbn);
 
+            int reserveCount = getReserveCount(inputIsbn);
+            printBook(book);
+            if(rent!=null) {
+                System.out.println("대출상태: 대출중");
+                System.out.println("대출기간: " + rent.getRentdate() + "~" + rent.getDuedate());
+            } else {
+                System.out.println("대출상태: 예약 대여 진행중");
+            }
+                System.out.println("예약대기자: " + reserveCount + "명");
                 if (reserveCount >= 3) {
                     System.out.println("예약인원 초과로 예약 하실 수 없습니다.");
                     return;
                 }
-
                 System.out.println("예약 하시겠습니까? (y/n)");
+                // 이미 예약중 → 예약 불가
+
                 if (confirm()) {
+                    if (countUserReservation(inputIsbn, currentUser) > 0) {
+                        System.out.println("이미 내가 예약중인 책입니다.");
+                        return;
+                    }
+                    if(countUserReservation(currentUser)==3){
+                        System.out.println("예약은 3권까지만 가능합니다.");
+                        return;
+                    }
                     reserveBook(book, today, reserveCount + 1);
                 } else {
                     System.out.println("예약이 취소되었습니다.");
                 }
-            }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    private Rent getBookedRent(int isbn) throws SQLException {
+    private Book getBook(int isbn) throws SQLException {
+        String sql = "SELECT * FROM booktbl WHERE isbn = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, isbn);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) return mapBook(rs);
+        }
+        return null;
+    }
+    private Rent getNotReturnRent(int isbn) throws SQLException {
         String sql = "SELECT * FROM renttbl r INNER JOIN booktbl b ON r.isbn = b.isbn WHERE r.isbn = ? AND r.turnin = 0";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, isbn);
@@ -254,12 +270,12 @@ public class LibraryManager {
         }
         return null;
     }
-    private Book getRentedBook(int isbn) throws SQLException {
-        String sql = "SELECT * FROM renttbl r INNER JOIN booktbl b ON r.isbn = b.isbn WHERE r.isbn = ? AND r.turnin = 0";
+    private Reserve getBookedReserve(int isbn) throws SQLException {
+        String sql = "SELECT * FROM reservetbl WHERE isbn = ? AND reservestatus = '예약대기'";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, isbn);
             ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) return mapBook(rs);
+            if (rs.next()) return mapReserve(rs);
         }
         return null;
     }
@@ -277,6 +293,15 @@ public class LibraryManager {
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, isbn);
             pstmt.setString(2, user.getUserid());
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        }
+        return 0;
+    }
+    private int countUserReservation(User user) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM reservetbl WHERE userid=? AND reservestatus='예약대기'";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, user.getUserid());
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) return rs.getInt(1);
         }
@@ -310,6 +335,17 @@ public class LibraryManager {
         );
     }
 
+    private Reserve mapReserve(ResultSet rs) throws SQLException {
+        return new Reserve(
+                rs.getInt("reservenumber"),
+                rs.getString("userid"),
+                rs.getInt("isbn"),
+                rs.getDate("reservedate"),
+                rs.getInt("reserverank"),
+                rs.getString("reservestatus")
+        );
+    }
+
     public void printBook(Book book){
         System.out.println(book.getIsbn());
         System.out.println(book.getTitle());
@@ -317,6 +353,7 @@ public class LibraryManager {
         System.out.println(book.getPublisher());
         System.out.println(book.getPubyear());
     }
+
     private void reserveBook(Book book, LocalDate today, int position) throws SQLException {
         String sql = "INSERT INTO reservetbl VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -329,5 +366,57 @@ public class LibraryManager {
             pstmt.executeUpdate();
         }
         System.out.println("예약이 완료되었습니다.");
+    }
+    // 책 반납
+    public void returnBook() {
+        //키워드: 현재 대여책/ 현재 대여 책 보여주는 쿼리문-> 모두 보여 주면서 반납할 책의 isbn 입력 받음->
+        //입력시 반납처리- 1.update 쿼리분으로 대여책의 turnindate 기입, turnin을 1로 바꿈.
+        // 2. 예약 테이블에 존재하는 책인지 확인하는 쿼리문, 3.있으면 해당 책의 대기자들 예약순위를 -1씩 감소시킴.
+        LocalDate today = LocalDate.now();
+
+        try{
+            myBook(currentUser);
+            System.out.println("반납할 책 isbn 입력");
+            int inputIsbn=input.nextInt();
+            input.nextLine();
+            String sql= "update renttbl set turnindate = ? , turnin=? where userid=? and isbn=? and turnin=false";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setDate(1,Date.valueOf(today));
+            pstmt.setBoolean(2,true);
+            pstmt.setString(3,currentUser.getUserid());//수정
+            pstmt.setInt(4,inputIsbn);
+            int updated = pstmt.executeUpdate();
+            if (updated > 0) {
+                System.out.println("정상적으로 반납되었습니다.");
+            } else {
+                System.out.println("반납 실패 - 조건에 맞는 대여 기록이 없습니다.");
+            }
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+    public void myBook(User user) throws SQLException {
+        ArrayList<Book> bookList = new ArrayList<>();
+        ArrayList<Rent> rentList = new ArrayList<>();
+
+        String sql="select * from renttbl r inner join booktbl b on r.isbn = b.isbn where userid=? and turnin=false";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        pstmt.setString(1,user.getUserid());
+        ResultSet rs = pstmt.executeQuery();
+        while(rs.next()){
+            bookList.add(mapBook(rs));
+            rentList.add(mapRent(rs));
+        }
+        if(bookList.size()==0){
+            System.out.println("대여중인 책이 없습니다.");
+        }
+        rs.close();
+        for(int i=0;i<bookList.size();i++){
+            printBook(bookList.get(i));
+            System.out.println("대여일"+rentList.get(i).getRentdate());
+            System.out.println("반납일"+rentList.get(i).getDuedate());
+            System.out.println("연장여부"+rentList.get(i).getProlong());
+        }
     }
 }
