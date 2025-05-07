@@ -218,7 +218,7 @@ public class SHLibraryManager {
         }
     }
     // 로그인 메뉴 실행
-    public boolean login() {
+    public boolean login() throws SQLException {
         Scanner input = new Scanner(System.in);
         System.out.print("ID: ");
         String id = input.nextLine();
@@ -233,12 +233,46 @@ public class SHLibraryManager {
         if (user.getUserpw().equals(pw)) {
             System.out.println(user.getUsername() + "님 환영합니다!");
             this.currentUser = user;
+            overdue();
             return true;
         } else {
             System.out.println("비밀번호를 다시 확인해 주세요.");
             return false;
         }
     }
+
+    public void overdue() throws SQLException {
+        String overduequery="select r.userid, r.rentdate, r.duedate, r.turnin, b.title from renttbl r "+
+                "join booktbl b on r.isbn=b.isbn "+
+                "where userid=? ";
+
+        DBConnect db=new DBConnect();
+        db.initDBConnect();
+
+        try(PreparedStatement pstmt=db.getConnection().prepareStatement(overduequery)){
+            pstmt.setString(1, currentUser.getUserid());
+
+
+            try(ResultSet rs=pstmt.executeQuery()) {
+                while (rs.next()) {
+                    //String id = rs.getString("userid");
+                    //Date rentdate = rs.getDate("rentdate");
+                    Date duedate = rs.getDate("duedate");
+                    String title = rs.getString("title");
+                    int turnin = rs.getInt("turnin");
+
+                    Date today = new Date(System.currentTimeMillis());
+                    long diffInMillies = today.getTime() - duedate.getTime();
+                    long diffInDays = diffInMillies / (1000 * 60 * 60 * 24);
+
+                    if (turnin == 0 && diffInDays > 0) {
+                        System.out.println(currentUser.getUsername() + "님이 대여하신 " + title + " 책이 연체된 지 " + diffInDays + "일 되었습니다.");
+                    }
+                }
+            }
+        }
+    }
+
     // 사용자 정보 조회
     public User selectUser(String pUserid) {
         String sql = "select * from usertbl where userid = ?";
