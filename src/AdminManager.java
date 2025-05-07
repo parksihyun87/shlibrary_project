@@ -7,6 +7,7 @@ public class AdminManager {
     private Connection conn;
     private Statement stmt;
     private User currentUser= null;
+    private Scanner input=new Scanner(System.in);
 
     //<<메뉴 함수>>
     // 회원정보 관리 메뉴 실행
@@ -35,11 +36,11 @@ public class AdminManager {
     public void bookAdminProcess() throws SQLException {
         while (true) {
             boolean endFlag = false;
-            MenuManager.bookAdmin();  // 메뉴 출력
+              // 메뉴 출력
             int select = MenuManager.menuInput(MenuManager.CHECKREQUEST, MenuManager.EXITBOOKADMIN);
             switch (select) {
                 case MenuManager.CHECKREQUEST:
-                    this.BookAdminProcess();
+                    this.BookRequestMenu();
 
                     break;
                 case MenuManager.EXITBOOKADMIN:
@@ -107,8 +108,7 @@ public class AdminManager {
         }
     }
 
-    public void BookAdminProcess() throws SQLException{
-        Scanner input=new Scanner(System.in);
+    public void BookRequestMenu() throws SQLException{
         while(true){
             boolean endFlag=false;
             bookAdmin();
@@ -120,10 +120,27 @@ public class AdminManager {
                     System.out.println("2. 승인 완료된 목록");
                     System.out.println("3. 승인 반려된 목록");
                     System.out.println("4. 도서 신청 목록 나가기");
-                    int subSelect=MenuManager.menuInput(1, 4);
+                    int reselect=0;
+                    while(true){
+                        System.out.println("메뉴를 선택하세요. ");
+                        if(input.hasNextInt()){
+                            select=input.nextInt();
+                            input.nextLine();
 
-                    switch(subSelect){
+                            if(select>=1&&select<=4){
+                                break;
+                            }else{
+                                System.out.println("잘못된 입력입니다.");
+                            }
+                        }else{
+                            input.nextLine();
+                            System.out.println("숫자를 입력해주세요. ");
+                        }
+                    }
+
+                    switch(reselect){
                         case 1:
+
                             List<Request> requestList=getRequestListByStatus("n");
                             for(Request req:requestList){
                                 System.out.println(req);
@@ -257,9 +274,9 @@ public class AdminManager {
 
     public void bookAdmin() {
         String requestquery = "SELECT * FROM requesttbl WHERE comrequest='n'";
+        Scanner input=new Scanner(System.in);
         try {
             ResultSet rs = stmt.executeQuery(requestquery);
-            Scanner input = new Scanner(System.in);
 
             while (rs.next()) {
                 int num = rs.getInt("requestnum");
@@ -291,6 +308,8 @@ public class AdminManager {
         } catch (SQLException e) {
             System.out.println("데이터베이스 연결 또는 쿼리 실행 중 오류가 발생했습니다.");
             e.printStackTrace();
+        }finally{
+            input.close();
         }
     }
     //도서 신청 확인 메서드 end
