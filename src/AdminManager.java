@@ -1,8 +1,6 @@
 import java.sql.*;
+import java.util.*;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
 
 public class AdminManager {
     //* 멤버 변수 부
@@ -34,16 +32,15 @@ public class AdminManager {
     }
 
     // 도서정보 관리 메뉴 실행
-    public void bookAdminProcess() {
+    public void bookAdminProcess() throws SQLException {
         while (true) {
             boolean endFlag = false;
             MenuManager.bookAdmin();  // 메뉴 출력
             int select = MenuManager.menuInput(MenuManager.CHECKREQUEST, MenuManager.EXITBOOKADMIN);
             switch (select) {
                 case MenuManager.CHECKREQUEST:
-                    this.bookAdmin();
-                    break;
-                case MenuManager.BUYBOOK:
+                    this.BookAdminProcess();
+
                     break;
                 case MenuManager.EXITBOOKADMIN:
                     endFlag = true;
@@ -110,6 +107,154 @@ public class AdminManager {
         }
     }
 
+    public void BookAdminProcess() throws SQLException{
+        Scanner input=new Scanner(System.in);
+        while(true){
+            boolean endFlag=false;
+            bookAdmin();
+            int select=MenuManager.menuInput(MenuManager.CHECKREQUEST, MenuManager.EXITBOOKADMIN);
+
+            switch(select){
+                case MenuManager.CHECKREQUEST :
+                    System.out.println("1. 승인 대기중인 목록");
+                    System.out.println("2. 승인 완료된 목록");
+                    System.out.println("3. 승인 반려된 목록");
+                    System.out.println("4. 도서 신청 목록 나가기");
+                    int subSelect=MenuManager.menuInput(1, 4);
+
+                    switch(subSelect){
+                        case 1:
+                            List<Request> requestList=getRequestListByStatus("n");
+                            for(Request req:requestList){
+                                System.out.println(req);
+                                System.out.println("이 책을 구매하시겠습니까? : Y|R");
+                                String yn=input.nextLine().toUpperCase();
+
+                                if(yn.equals("Y")){
+                                    System.out.println("도서의 Call Number를 입력하세요. ");
+                                    String callnum=input.nextLine();
+                                    approveBookRequest(req.getRequestnum(), callnum);
+                                    System.out.println("도서 구매 및 목록 등록 완료");
+                                }else if(yn.equals("R")){
+                                    rejectBookRequest(req.getRequestnum());
+                                    System.out.println("도서 구매 신청이 반려되었습니다.");
+                                }else{
+                                    System.out.println("잘못된 입력입니다.");
+                                }
+                            }
+                            break;
+
+                        case 2:
+                            List<Request> approvedList=getRequestListByStatus("y");
+                            System.out.println("승인 완료 신청 목록 : ");
+                            for(Request req:approvedList){
+                                System.out.println(req);
+                            }
+                            break;
+
+                        case 3:
+                            List<Request> rejectedList=getRequestListByStatus("r");
+                            System.out.println("반려된 신청 목록 : ");
+                            for(Request req:rejectedList){
+                                System.out.println(req);
+                            }
+                            break;
+
+                        case 4:
+                            System.out.println("도서 신청 목록 나가기");
+                            endFlag=true;
+                            break;
+                    }
+                    if(endFlag){
+                        break;
+                    }
+            }
+        }
+    }
+
+    //도서 신청 목록 확인 함수부 Start
+    public static List<Request> getRequestListByStatus(String status) throws SQLException{
+        List<Request> list=new ArrayList<>();
+        String query="select * from requesttbl where comrequest=?";
+        DBConnect db=new DBConnect();
+        db.initDBConnect();
+
+        try(Connection conn=db.getConnection();
+            PreparedStatement pstmt=conn.prepareStatement(query)){
+            pstmt.setString(1, status);
+            ResultSet rs=pstmt.executeQuery();
+
+            while(rs.next()){
+                int num=rs.getInt("requestnum");
+                String id=rs.getString("userid");
+                String title=rs.getString("title");
+                String author=rs.getString("author");
+                String publisher=rs.getString("publisher");
+
+                list.add(new Request(num, id, title, author, publisher, status));
+            }
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public void approveBookRequest(int requestnum, String callnum){
+        DBConnect db=new DBConnect();
+        db.initDBConnect();
+
+        String selectQuery="select * from requesttbl where requestnum=?";
+        String insertBookQuery="insert into booktbl (isbn, title, author, publisher, pubyear, callnum, rentnum) values (?, ?, ?, ?, ?, ?, 0)";
+        String updateRequestQuery="update requesttbl set comrequest='y' where requestnum=?";
+
+        try(Connection conn=db.getConnection();
+            PreparedStatement pstmt=conn.prepareStatement(selectQuery)){
+            pstmt.setInt(1, requestnum);
+            ResultSet rs=pstmt.executeQuery();
+
+            if(rs.next()){
+                String title=rs.getString("title");
+                String author=rs.getString("author");
+                String publisher=rs.getString("publisher");
+                int pubyear=rs.getInt("pubyear");
+                int isbn=requestnum+3000;
+
+                try(PreparedStatement insertPstmt=conn.prepareStatement(insertBookQuery);
+                    PreparedStatement updatePstmt=conn.prepareStatement(updateRequestQuery)){
+
+                    insertPstmt.setInt(1, isbn);
+                    insertPstmt.setString(2, title);
+                    insertPstmt.setString(3, author);
+                    insertPstmt.setString(4, publisher);
+                    insertPstmt.setInt(5, pubyear);
+                    insertPstmt.setString(6, callnum);
+                    insertPstmt.executeUpdate();
+
+                    updatePstmt.setInt(1, requestnum);
+                    updatePstmt.executeUpdate();
+                    System.out.println("도서 구매가 승인되어 도서 목록에 추가되었습니다. ");
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void rejectBookRequest(int requestnum){
+        String updateQuery="update requesttbl set comrequest='r' where requestnum=?";
+        DBConnect db=new DBConnect();
+        db.initDBConnect();
+
+        try(Connection conn=db.getConnection();
+            PreparedStatement pstmt=conn.prepareStatement(updateQuery)){
+            pstmt.setInt(1, requestnum);
+            pstmt.executeUpdate();
+            System.out.println("도서 신청이 반려 처리되었습니다. ");
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+    }
+
     public void bookAdmin() {
         String requestquery = "SELECT * FROM requesttbl WHERE comrequest='n'";
         try {
@@ -148,6 +293,7 @@ public class AdminManager {
             e.printStackTrace();
         }
     }
+    //도서 신청 확인 메서드 end
 
     public void gradeAdmin() {
         // userDiffMap을 날짜와 대여 횟수 정보로 채운다.
@@ -165,15 +311,20 @@ public class AdminManager {
 
                 // 등급 계산
                 String grade;
-                if (diffMonth >= 18 && rentcount >= 20) {
-                    grade = "모범회원";
-                } else if (diffMonth >= 12 && diffMonth < 18 && rentcount >= 15) {
-                    grade = "우수회원";
-                } else if (diffMonth >= 6 && diffMonth < 12 && rentcount >= 10) {
-                    grade = "일반회원";
-                } else {
-                    grade = "신입회원";
+                if(isLongTermOverdue(id)){
+                    grade="장기연체자";
+                }else{
+                    if (diffMonth >= 18 && rentcount >= 20) {
+                        grade = "모범회원";
+                    } else if (diffMonth >= 12 && diffMonth < 18 && rentcount >= 15) {
+                        grade = "우수회원";
+                    } else if (diffMonth >= 6 && diffMonth < 12 && rentcount >= 10) {
+                        grade = "일반회원";
+                    } else {
+                        grade = "신입회원";
+                    }
                 }
+
 
                 // 등급을 업데이트하는 쿼리 실행
                 pstmt.setString(1, grade);
@@ -222,6 +373,22 @@ public class AdminManager {
             throw new RuntimeException(e); // 예외 발생 시 처리
         }
         return userDaysMap;
+    }
+
+    public boolean isLongTermOverdue(String userid) throws SQLException{
+        String query="select 1 from renttbl "+
+                "where userid=? "+
+                "and datediff(turnindate, duedate)>=30 "+
+                "limit 1";
+        DBConnect db=new DBConnect();
+        db.initDBConnect();
+
+        try(Connection conn=db.getConnection();
+            PreparedStatement pstmt=conn.prepareStatement(query)){
+            pstmt.setString(1, userid);
+            ResultSet rs=pstmt.executeQuery();
+            return rs.next();
+        }
     }
 //    public void blackAdmin(){
 //
