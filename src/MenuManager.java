@@ -32,9 +32,12 @@ public class MenuManager {
     public final static int MYINFO=2;
     public final static int DELAY=3;
     public final static int EXITMEMBER=4;
-    // 현재 대여 현황 메뉴
+    // 나의 대여 현황 메뉴
     public final static int CURRENTRENTALSTATUS = 1;
-    public final static int EXITRENTALSTATUS = 2;
+    public final static int LASTRENTALSTATUS = 2;
+    public final static int RESERVEDBOOKSTATUS = 3;
+    public final static int REQUESTBOOKSTATUS = 4;
+    public final static int EXITRENTALSTATUS = 5;
     //  나의 정보 메뉴
     public final static int CHECKINFO=1;
     public final static int UPDATEINFO=2;
@@ -43,17 +46,20 @@ public class MenuManager {
     public final static int CHECKOVERDUE = 1;
     public final static int EXITOVERDUEMENU = 2;
 
-    // 회원 메뉴 출력
+    // 회원 메뉴 출력-상위
     public static void memberMenu(){
-        System.out.println("1. 내 대출 현황");
+        System.out.println("1. 나의 대여 현황");
         System.out.println("2. 나의 정보 확인/수정");
         System.out.println("3. 연체 정보 확인");
         System.out.println("4. 나의 회원 정보 나가기");
     }
-    // 현재 대여 현황 메뉴 출력
+    // 나의 대여 현황 메뉴 출력
     public static void rentalStatus() {
-        System.out.println("1. 현재 대여 현황 보기");
-        System.out.println("2. 나가기");
+        System.out.println("1. 현재 대여 도서 보기");
+        System.out.println("2. 지난 대여 기록 보기");
+        System.out.println("3. 나의 예약 도서 보기");
+        System.out.println("4. 나의 신청 도서 보기");
+        System.out.println("5. 나가기");
     }
     // 나의 정보 메뉴 출력
     public static void myinfo(){
@@ -148,7 +154,7 @@ public class MenuManager {
     public final static int BOOKTURNIN=1;
     public final static int BOOKPROLONG=2;
     public final static int EXITBOOKRETURN=3;
-    // 책 신청 메뉴 상수
+    // 책 신청 메뉴
     public final static int REQUESTBOOK = 1;
     public final static int CHECKDUPLICATE = 2;
     public final static int EXITBOOKREQUEST = 3;

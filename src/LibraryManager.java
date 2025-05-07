@@ -71,41 +71,6 @@ public class LibraryManager {
         }
     }
 
-    // 도서 분류별 추천 실행
-//    public void interestCategoryProcess() {
-//        while (true) {
-//            boolean endFlag = false;
-//            MenuManager.interestCategory();
-//            int select = MenuManager.menuInput(MenuManager.GENERALWORKS, MenuManager.EXITCATEGORY);
-//            switch (select) {
-//                case MenuManager.GENERALWORKS:
-//                    break;
-//                case MenuManager.PHILOSOPHY:
-//                    break;
-//                case MenuManager.RELIGION:
-//                    break;
-//                case MenuManager.SOCIALSCIENCE:
-//                    break;
-//                case MenuManager.NATURALSCIENCE:
-//                    break;
-//                case MenuManager.TECHNOLOGY:
-//                    break;
-//                case MenuManager.ART:
-//                    break;
-//                case MenuManager.LANGUAGE:
-//                    break;
-//                case MenuManager.LITERATURE:
-//                    break;
-//                case MenuManager.HISTORY:
-//                    break;
-//                case MenuManager.EXITCATEGORY:
-//                    endFlag = true;
-//                    break;
-//            }
-//            if (endFlag) break;
-//        }
-//    }
-
     // 책 반납 메뉴 실행
     public void bookReturnProcess() {
         while (true) {
@@ -158,6 +123,10 @@ public class LibraryManager {
             e.printStackTrace();
         }
     }
+
+    public LibraryManager() {
+    }
+
     // << 베스트 셀러 >>
     public void printTop5Books(){
         String sql = """
