@@ -36,6 +36,46 @@ public class MemberManager_safe_name {
         }
     }
 
+    //나의 정보 수정 메서드
+    public void updateMyInfo(){
+        System.out.println("PW를 다시 입력해주세요. ");
+        String pwd=input.nextLine();
+
+        if(this.currentUser.getUserpw().equals(pwd)){
+            System.out.println("===== 나의 정보 수정 =====");
+            System.out.println("수정할 ID : ");
+            String new_id=input.nextLine();
+            System.out.println("수정할 PW : ");
+            String new_pw=input.nextLine();
+            System.out.println("수정할 나이 : ");
+            int new_age=input.nextInt();
+            input.nextLine();
+            System.out.println("수정할 관심분야 : ");
+            String new_interest=input.nextLine();
+
+            String updateinfoquery="update usertbl "+
+                    " set userid=?, userpw=?, userage=?, userinterest=? "+
+                    " where userid=? ";
+            Connection conn=db.getConnection();
+            try{
+                PreparedStatement pstmt=conn.prepareStatement(updateinfoquery);
+                pstmt.setString(1, new_id);
+                pstmt.setString(2, new_pw);
+                pstmt.setInt(3, new_age);
+                pstmt.setString(4, new_interest);
+                pstmt.executeUpdate();
+
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+
+            System.out.println("====== "+this.currentUser.getUsername()+"님의 정보가 변경되었습니다. =====");
+        }else{
+            System.out.println("비밀번호가 틀렸습니다. 다시 시도하세요.");
+        }
+
+    }
+
     public void run(){
         db.initDBConnect();//콘, 스테이트 변화로 연결, 이부분 함수부 윗줄 추가(오류 확인용인데 크게 의미는 없음)
     }
