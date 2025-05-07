@@ -114,7 +114,7 @@ public class SHLibraryManager {
     }
 
     // 회원 메뉴 실행
-    public void memberProcess() {
+    public void memberProcess() throws SQLException {
         while (true) {
             boolean endFlag = false;
             MenuManager.memberMenu();
