@@ -1,4 +1,5 @@
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
 
@@ -234,6 +235,7 @@ public class SHLibraryManager {
             System.out.println(user.getUsername() + "님 환영합니다!");
             this.currentUser = user;
             overdue();
+            booked();
             return true;
         } else {
             System.out.println("비밀번호를 다시 확인해 주세요.");
@@ -270,6 +272,26 @@ public class SHLibraryManager {
                     }
                 }
             }
+        }
+    }
+
+    public void booked(){
+        String sql = "select * from reservetbl r join booktbl b on b.isbn= r.isbn where r.userid=? and r.reservestatus='예약대기' and r.reserverank=0";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, currentUser.getUserid());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    int isbn = rs.getInt("isbn");
+                    String bookTitle = rs.getString("title");
+                    String author = rs.getString("author");
+                    System.out.println("현재 대여 가능한 예약도서가 있으며,");
+                    System.out.print(" 제목: " + bookTitle);
+                    System.out.print(", 저자: " + author+" 입니다.");
+                    System.out.println();
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 

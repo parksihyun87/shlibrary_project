@@ -16,6 +16,12 @@ public class MemberManager {
             switch (select) {
                 case MenuManager.CURRENTRENTALSTATUS:
                     break;
+                case MenuManager.LASTRENTALSTATUS:
+                    break;
+                case MenuManager.RESERVEDBOOKSTATUS:
+                    break;
+                case MenuManager.REQUESTBOOKSTATUS:
+                    break;
                 case MenuManager.EXITRENTALSTATUS:
                     endFlag = true;
                     break;
@@ -183,7 +189,6 @@ public class MemberManager {
         }else{
             System.out.println("비밀번호가 틀렸습니다. 다시 시도하세요.");
         }
-
     }
 
     // <<기능 함수부>>
