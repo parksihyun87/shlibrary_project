@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.11, for Win64 (x86_64)
 --
--- Host: localhost    Database: triggerdb
+-- Host: localhost    Database: shlibrary
 -- ------------------------------------------------------
 -- Server version	8.0.11
 
@@ -40,7 +40,7 @@ CREATE TABLE `requesttbl` (
 
 LOCK TABLES `requesttbl` WRITE;
 /*!40000 ALTER TABLE `requesttbl` DISABLE KEYS */;
-INSERT INTO `requesttbl` VALUES (1,'bbbb','빛과 실','한강','문학과지성사',2025,'n'),(2,'dddd','혼모노','성해나','창비',2025,'n'),(3,'gggg','스토너','존 윌리엄스','알에이치코리아',2015,'n'),(4,'eeee','파과','구병모','위즈덤하우스',2018,'n');
+INSERT INTO `requesttbl` VALUES (1,'bbbb','빛과 실','한강','문학과지성사',2025,'n'),(2,'dddd','혼모노','성해나','창비',2025,'n'),(3,'gggg','스토너','존 윌리엄스','알에이치코리아',2015,'n'),(4,'eeee','파괴','구병모','위즈덤하우스',2018,'n');
 /*!40000 ALTER TABLE `requesttbl` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -53,4 +53,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-07 10:12:31
+-- Dump completed on 2025-05-07 10:29:45
