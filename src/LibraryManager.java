@@ -355,6 +355,11 @@ public class LibraryManager {
         System.out.println(book.getPubyear());
     }
 
+    public void printReturnBook(Book book){
+        System.out.print("isbn: " + book.getIsbn());
+        System.out.println(", 제목: " + book.getTitle());
+    }
+
     private void reserveBook(Book book, LocalDate today, int position) throws SQLException {
         String sql = "INSERT INTO reservetbl VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -386,6 +391,10 @@ public class LibraryManager {
             pstmt.setBoolean(2,true);
             pstmt.setString(3,currentUser.getUserid());//수정
             pstmt.setInt(4,inputIsbn);
+            String sql2= "update reservetbl set reserverank = reserverank-1 where isbn=?";
+            PreparedStatement pstmt2= conn.prepareStatement(sql2);
+            pstmt2.setInt(1,inputIsbn);
+            pstmt2.executeUpdate();
             int updated = pstmt.executeUpdate();
             if (updated > 0) {
                 System.out.println("정상적으로 반납되었습니다.");
@@ -414,10 +423,17 @@ public class LibraryManager {
         }
         rs.close();
         for(int i=0;i<bookList.size();i++){
-            printBook(bookList.get(i));
-            System.out.println("대여일"+rentList.get(i).getRentdate());
-            System.out.println("반납일"+rentList.get(i).getDuedate());
-            System.out.println("연장여부"+rentList.get(i).getProlong());
+            String str;
+            if(rentList.get(i).getProlong()){
+                str = "연장함";
+            } else{
+                str = "연장안함";
+            }
+            printReturnBook(bookList.get(i));
+            System.out.print("대여일: "+rentList.get(i).getRentdate());
+            System.out.print(", 반납일: "+rentList.get(i).getDuedate());
+            System.out.print(", 연장여부: "+str);
+            System.out.println();
         }
     }
 
