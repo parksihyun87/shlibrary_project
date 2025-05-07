@@ -255,8 +255,8 @@ public class SHLibraryManager {
 
             try(ResultSet rs=pstmt.executeQuery()) {
                 while (rs.next()) {
-                    //String id = rs.getString("userid");
-                    //Date rentdate = rs.getDate("rentdate");
+                    String id = rs.getString("userid");
+                    Date rentdate = rs.getDate("rentdate");
                     Date duedate = rs.getDate("duedate");
                     String title = rs.getString("title");
                     int turnin = rs.getInt("turnin");
@@ -266,7 +266,7 @@ public class SHLibraryManager {
                     long diffInDays = diffInMillies / (1000 * 60 * 60 * 24);
 
                     if (turnin == 0 && diffInDays > 0) {
-                        System.out.println(currentUser.getUsername() + "님이 대여하신 " + title + " 책이 연체된 지 " + diffInDays + "일 되었습니다.");
+                        System.out.println(currentUser.getUsername() + "님이 대여하신 " + " [ "+title+" ] " + " 책이 연체된 지 " + diffInDays + "일 되었습니다.");
                     }
                 }
             }
