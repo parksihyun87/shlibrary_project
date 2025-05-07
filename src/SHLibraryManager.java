@@ -54,7 +54,7 @@ public class SHLibraryManager {
     }
 
     //  메인 메뉴 실행
-    public boolean mainMenuProcess() {
+    public boolean mainMenuProcess() throws SQLException {
         while (true) {
             boolean endFlag = false;
             MenuManager.mainMenu();
@@ -140,7 +140,7 @@ public class SHLibraryManager {
     }
 
     // 관리자 메뉴 실행
-    public void adminProcess() {
+    public void adminProcess() throws SQLException {
         while (true) {
             boolean endFlag = false;
             MenuManager.AdminMenu();  // 메뉴 출력

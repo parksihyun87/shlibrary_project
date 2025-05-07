@@ -80,8 +80,7 @@ public class MenuManager {
     public final static int EXITMEMBERADMIN=3;
     //  도서정보 메뉴
     public final static int CHECKREQUEST=1;
-    public final static int BUYBOOK=2;
-    public final static int EXITBOOKADMIN=3;
+    public final static int EXITBOOKADMIN=2;
     //  회원등급 메뉴
     public final static int CHECKRANK=1;
     public final static int UPDATERANK=2;
@@ -108,8 +107,7 @@ public class MenuManager {
     //  도서정보 메뉴 출력
     public static void bookAdmin(){
         System.out.println("1. 신청도서 확인/처리");
-        System.out.println("2. 도서 구매");
-        System.out.println("3. 도서관리 나가기");
+        System.out.println("2. 도서관리 나가기");
     }
     //  회원등급 메뉴 출력
     public static void rateAdmin(){
