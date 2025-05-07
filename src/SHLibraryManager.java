@@ -97,7 +97,7 @@ public class SHLibraryManager {
                     lbM.bestsellerProcess();
                     break;
                 case MenuManager.BOOKEDBOOK:
-                    //예약도서 대출 넣기.
+                    lbM.rentBookedBook();
                     break;
                 case MenuManager.BOOKRETURN:
                     lbM.bookReturnProcess();
