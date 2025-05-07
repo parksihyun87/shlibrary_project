@@ -134,6 +134,7 @@ public class LibraryManager {
             int select = MenuManager.menuInput(MenuManager.REQUESTBOOK, MenuManager.EXITBOOKREQUEST);
             switch (select) {
                 case MenuManager.REQUESTBOOK:
+                    applyForBookRequest(currentUser.userid);
                     break;
                 case MenuManager.CHECKDUPLICATE:
                     break;
@@ -418,5 +419,39 @@ public class LibraryManager {
             System.out.println("반납일"+rentList.get(i).getDuedate());
             System.out.println("연장여부"+rentList.get(i).getProlong());
         }
+    }
+
+    public static void applyForBookRequest(String userid){
+        Scanner input=new Scanner(System.in);
+        System.out.print("신청할 도서 제목을 입력하세요: ");
+        String title=input.nextLine();
+        System.out.println("신청할 도서의 저자를 입력하세요: ");
+        String author=input.nextLine();
+        System.out.println("신청할 도서의 출판사를 입력하세요: ");
+        String publisher=input.nextLine();
+        System.out.println("신청할 도서의 출판연도를 입력하세요: ");
+        int pubyear=input.nextInt();
+        String query="insert into requesttbl (userid, title, author, publisher, pubyear, comrequest) values(?, ?, ?, ?, ?, 'N'";
+
+        DBConnect db=new DBConnect();
+        db.initDBConnect();
+        try(Connection conn=db.getConnection();
+            PreparedStatement pstmt=conn.prepareStatement(query)){
+            pstmt.setString(1, userid);
+            pstmt.setString(2, title);
+            pstmt.setString(3, author);
+            pstmt.setString(4, publisher);
+            pstmt.setInt(5, pubyear);
+
+            int result=pstmt.executeUpdate();
+            if(result>0){
+                System.out.println("도서 신청이 완료되었습니다.");
+            }else{
+                System.out.println("도서 신청에 실패하였습니다.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
     }
 }
