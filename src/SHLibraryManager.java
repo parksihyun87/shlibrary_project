@@ -1,6 +1,9 @@
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class SHLibraryManager {
@@ -275,25 +278,79 @@ public class SHLibraryManager {
         }
     }
 
-    public void booked(){
-        String sql = "select * from reservetbl r join booktbl b on b.isbn= r.isbn where r.userid=? and r.reservestatus='예약대기' and r.reserverank=0";
+    public void booked() {
+        String sql = """
+        select * from reservetbl r join booktbl b on b.isbn= r.isbn
+        where r.userid=? and r.reservestatus='예약대기' and r.reserverank=0
+    """;
+
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, currentUser.getUserid());
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    int isbn = rs.getInt("isbn");
+                    java.sql.Date turninDate = null;
+                    int thisIsbn = rs.getInt("isbn");
                     String bookTitle = rs.getString("title");
                     String author = rs.getString("author");
-                    System.out.println("현재 대여 가능한 예약도서가 있으며,");
+
+                    System.out.println("예약도서가 도착하였으며,");
                     System.out.print(" 제목: " + bookTitle);
-                    System.out.print(", 저자: " + author+" 입니다.");
+                    System.out.print(", 저자: " + author + " 입니다.");
                     System.out.println();
+
+                    String sql2 = """
+                    select rt.turnindate
+                    from reservetbl r
+                    join booktbl b on b.isbn = r.isbn
+                    left join renttbl rt on rt.isbn = r.isbn and rt.turnin = 1
+                    where r.userid = ? and b.isbn = ? and r.reservestatus = '예약대기' and r.reserverank = 0
+                    order by turnindate desc limit 1;
+                """;
+                    try (PreparedStatement pstmt2 = conn.prepareStatement(sql2)) {
+                        pstmt2.setString(1, currentUser.getUserid());
+                        pstmt2.setInt(2, thisIsbn);
+
+                        try (ResultSet rs2 = pstmt2.executeQuery()) {
+                            if (rs2.next()) {
+                                turninDate = rs2.getDate("turnindate");
+                            }
+                        }
+                    }
+                    if (turninDate != null) {
+                        LocalDate turninLocal = turninDate.toLocalDate();
+                        LocalDate today = LocalDate.now();
+                        long diffInDays = ChronoUnit.DAYS.between(turninLocal, today);
+
+                        System.out.println("도착일자: " + turninLocal +" 이며, 3일내 미수령시 예약취소됩니다.");
+
+                        if (diffInDays > 2) {
+                            String sql3 = """
+                            update reservetbl
+                            set reservestatus='예약취소', reserverank=null
+                            where userid=? and isbn=? and reservestatus='예약대기' and reserverank=0
+                        """;
+
+                            try (PreparedStatement pstmt3 = conn.prepareStatement(sql3)) {
+                                pstmt3.setString(1, currentUser.getUserid());
+                                pstmt3.setInt(2, thisIsbn);
+                                pstmt3.executeUpdate();
+                            }
+                            String sql4= "update reservetbl set reserverank = reserverank-1 where isbn=?";
+                            PreparedStatement pstmt4= conn.prepareStatement(sql4);
+                            pstmt4.setInt(1,thisIsbn);
+                            pstmt4.executeUpdate();
+                        }
+                    } else {
+                        System.out.println("turninDate가 null입니다.");
+                    }
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }// 자동 취소 확인
+    }
+
 
     // 사용자 정보 조회
     public User selectUser(String pUserid) {
