@@ -27,7 +27,7 @@ CREATE TABLE `reservetbl` (
   `userid` varchar(10) NOT NULL,
   `isbn` int NOT NULL,
   `reservetdate` date NOT NULL,
-  `reserverank` int DEFAULT NULL,
+  `reserverank` int NOT NULL,
   `reservestatus` varchar(10) DEFAULT NULL,
   PRIMARY KEY (`reservenumber`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -52,4 +52,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-08  0:18:47
+-- Dump completed on 2025-05-08 21:19:26

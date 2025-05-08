@@ -24,7 +24,7 @@ DROP TABLE IF EXISTS `requesttbl`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `requesttbl` (
   `requestnum` int NOT NULL AUTO_INCREMENT,
-  `userid` char(4) NOT NULL,
+  `userid` varchar(10) NOT NULL,
   `title` varchar(40) NOT NULL,
   `author` varchar(30) NOT NULL,
   `publisher` varchar(30) NOT NULL,
@@ -53,4 +53,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-08  0:18:48
+-- Dump completed on 2025-05-08 21:19:25
