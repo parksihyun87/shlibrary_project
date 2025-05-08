@@ -19,6 +19,7 @@ public class AdminManager {
             int select = MenuManager.menuInput(MenuManager.CHECKMEMBERADMIN, MenuManager.EXITMEMBERADMIN);
             switch (select) {
                 case MenuManager.CHECKMEMBERADMIN:
+                    this.checkMember();
                     break;
                 case MenuManager.UPDATEMEMBERADMIN:
                     this.updateMemberInfo();
@@ -478,6 +479,51 @@ public class AdminManager {
         return notReturnedList;
     }
 //<<유저 정보 업데이트부>>
+    public void printAllmemeber(){
+        System.out.println("회원 목록");
+        String sqlAll = "select * from usertbl";
+        try (ResultSet rs = stmt.executeQuery(sqlAll)) {
+            while (rs.next()) {
+                String id = rs.getString("userid");
+                String name = rs.getString("username");
+                System.out.print("id: " + id);
+                System.out.print(", 이름: " + name + " ");
+                System.out.println();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public void checkMember(){
+        printAllmemeber();
+        System.out.println("열람할 회원의 id를 입력하세요");
+        String inputId= input.nextLine();
+
+        String sql="select * from usertbl where userid=?";
+
+        try(PreparedStatement pstmt = conn.prepareStatement(sql)){
+            pstmt.setString(1,inputId);
+            ResultSet rs = pstmt.executeQuery();
+            while(rs.next()){
+                String id=rs.getString("userid");
+                String pw=rs.getString("userpw");
+                String name=rs.getString("username");
+                java.sql.Date userdate=rs.getDate("userdate");
+                int age=rs.getInt("userage");
+                String interest=rs.getString("userinterest");
+                String grade=rs.getString("usergrade");
+
+
+                System.out.println("===== "+name+"님의 정보"+ "=====");
+                System.out.println("ID : "+id+'\t' +"PW : "+pw);
+                System.out.println("가입일자 : "+userdate);
+                System.out.println("나이 : "+age+'\t'+"관심분야 : "+interest+'\t'+"등급 : "+grade);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void updateMemberInfo() {
         boolean endFlag = false;
         System.out.println("관리자 비밀번호를 다시 입력하세요.");
