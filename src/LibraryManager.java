@@ -561,9 +561,16 @@ public class LibraryManager {
     // ↓↓ 희용추가(0508)
     // 일반검색
     public int normalSearch() {
-        System.out.print("검색어를 입력해 주세요: ");
-        String searchWord = input.nextLine().trim();
-
+        String searchWord;
+        while (true) {
+            System.out.print("검색어를 입력해 주세요: ");
+            searchWord = input.nextLine().trim();
+            if (searchWord == "") {
+                System.out.println("검색어를 한글자 이상 입력해 주세요.");
+                continue;
+            }
+            break;
+        }
         String sql = "select * from booktbl b inner join keywordtbl k on b.isbn = k.isbn " +
                 "where b.title like ? or b.author like ? or b.publisher like ? or " +
                 "k.keyword1 like ? or k.keyword2 like ? or k.keyword3 like ? or k.keyword4 like ? or k.keyword5 like ? or k.keyword6 like ?";
@@ -607,8 +614,18 @@ public class LibraryManager {
             case "publisher" -> "출판사";
             default -> "제목";
         };
-        System.out.print("검색할 " + categoryWord + ": ");
-        String searchWord = input.nextLine().trim();
+
+        String searchWord;
+        while (true) {
+            System.out.print("검색할 " + categoryWord + "을(를) 입력해 주세요: ");
+            searchWord = input.nextLine().trim();
+            if (searchWord == "") {
+                System.out.println("검색어를 한글자 이상 입력해 주세요.");
+                continue;
+            }
+            break;
+        }
+
         String sql = "select * from booktbl where " + category + " like ?";
         db.initDBConnect();
         printBookHead();
@@ -642,8 +659,16 @@ public class LibraryManager {
     }
     // 키워드검색
     public int detailKeywordSearch() {
-        System.out.print("검색할 키워드: ");
-        String searchKeyword = input.nextLine().trim();
+        String searchKeyword;
+        while (true) {
+            System.out.print("검색할 키워드를 입력해 주세요: ");
+            searchKeyword = input.nextLine().trim();
+            if (searchKeyword == "") {
+                System.out.println("검색어를 한글자 이상 입력해 주세요.");
+                continue;
+            }
+            break;
+        }
         String sql = "select * from booktbl b " +
                 "inner join keywordtbl k on b.isbn = k.isbn " +
                 "where k.keyword1 like ? or k.keyword2 like ? or k.keyword3 like ? or k.keyword4 like ? or k.keyword5 like ? or k.keyword6 like ?";
