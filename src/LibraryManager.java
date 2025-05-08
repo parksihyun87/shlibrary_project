@@ -210,6 +210,10 @@ public class LibraryManager {
                     System.out.println("예약인원 초과로 예약 하실 수 없습니다.");
                     return;
                 }
+
+            if(delayedBook()){
+                return;
+            }
                 System.out.println("예약 하시겠습니까? (y/n)");
                 // 이미 예약중 → 예약 불가
 
@@ -222,9 +226,7 @@ public class LibraryManager {
                         System.out.println("예약은 3권까지만 가능합니다.");
                         return;
                     }
-                    if(delayedBook()){
-                        return;
-                    }
+
                     reserveBook(book, today, reserveCount + 1);
 
                 } else {
@@ -420,6 +422,9 @@ public class LibraryManager {
     // 책 반납 연장 메서드
     public void prolongBook(){
         try{
+            if(delayedBook()){
+                return;
+            }
             myRentedBook(currentUser);
             System.out.println("연장할 책 isbn을 입력하세요");
             int inputIsbn= input.nextInt();
@@ -591,6 +596,9 @@ public class LibraryManager {
     }
     public boolean delayedBook(){
         //연체여부 확인
+        DBConnect db=new DBConnect();
+        db.initDBConnect();
+
         String overduequery="select r.userid, r.rentdate, r.duedate, r.turnin, b.title from renttbl r "+
                 "join booktbl b on r.isbn=b.isbn "+
                 "where userid=? ";
