@@ -20,7 +20,7 @@ public class LibraryManager {
             int select = MenuManager.menuInput(MenuManager.NORMALSEARCH, MenuManager.EXITBOOKSEARCH);
             switch (select) {
                 case MenuManager.NORMALSEARCH:
-                    normalSearch();
+                    handleBookTransaction(normalSearch(), currentUser.getUserid(), this.conn);
                     break;
                 case MenuManager.SPECIFICSEARCH:
                     detailedSearchProcess();
@@ -571,7 +571,7 @@ public class LibraryManager {
             }
             break;
         }
-        String sql = "select * from booktbl b inner join keywordtbl k on b.isbn = k.isbn " +
+        String sql = "select * from booktbl b left join keywordtbl k on b.isbn = k.isbn " +
                 "where b.title like ? or b.author like ? or b.publisher like ? or " +
                 "k.keyword1 like ? or k.keyword2 like ? or k.keyword3 like ? or k.keyword4 like ? or k.keyword5 like ? or k.keyword6 like ?";
         db.initDBConnect();
@@ -651,11 +651,19 @@ public class LibraryManager {
                 return 0;
             }
             System.out.println("-".repeat(115));
+            int selectedIsbn = selectIsbn();
+            if (selectedIsbn == 0) { // 추가된 부분
+                System.out.println("검색을 종료합니다."); // 추가된 부분
+                return 0; // 추가된 부분
+            }
+
+            handleBookTransaction(selectedIsbn, currentUser.getUserid(), conn);
             rs.close();
+            return selectedIsbn; // 옮겨진 부분 (정상 종료 시 반환)
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return selectIsbn();
+        return 0; // 예외 발생 시 기본값 반환
     }
     // 키워드검색
     public int detailKeywordSearch() {
@@ -766,4 +774,79 @@ public class LibraryManager {
     }
     // ↑↑ 희용추가(0508) 끝
 
+    public void handleBookTransaction(int isbn, String userId, Connection conn) {
+        try {
+            // 1. 책 상세정보 출력
+            PreparedStatement bookStmt = conn.prepareStatement("SELECT * FROM booktbl WHERE isbn = ?");
+            bookStmt.setInt(1, isbn);
+            ResultSet bookRs = bookStmt.executeQuery();
+
+            if (bookRs.next()) {
+                System.out.println("책 제목: " + bookRs.getString("title"));
+                System.out.println("저자: " + bookRs.getString("author"));
+                System.out.println("현재 대출수: " + bookRs.getInt("rentnum"));
+            } else {
+                System.out.println("해당 ISBN의 책이 존재하지 않습니다.");
+                return;
+            }
+
+            // 2. 책이 이미 대출 중인지 확인
+            PreparedStatement rentCheckStmt = conn.prepareStatement(
+                    "SELECT COUNT(*) FROM renttbl WHERE isbn = ? AND turnin = 0");
+            rentCheckStmt.setInt(1, isbn);
+            ResultSet rentCheckRs = rentCheckStmt.executeQuery();
+            rentCheckRs.next();
+            boolean isRented = rentCheckRs.getInt(1) > 0;
+
+            if (isRented) {
+                System.out.println("이 책은 현재 대출 중입니다.");
+                return;
+            }
+
+            // 3. 사용자 확인
+            PreparedStatement userStmt = conn.prepareStatement(
+                    "SELECT username FROM usertbl WHERE userid = ?");
+            userStmt.setString(1, userId);
+            ResultSet userRs = userStmt.executeQuery();
+            if (!userRs.next()) {
+                System.out.println("회원 정보가 존재하지 않습니다.");
+                return;
+            }
+
+            // 4. 실시간 대출 가능 여부 확인 (rent 테이블 기준)
+            PreparedStatement countStmt = conn.prepareStatement(
+                    "SELECT COUNT(*) FROM renttbl WHERE userid = ? AND turnin = 0");
+            countStmt.setString(1, userId);
+            ResultSet countRs = countStmt.executeQuery();
+            countRs.next();
+            int currentRents = countRs.getInt(1);
+            int rentLimit = 3; // 대출 한도는 하드코딩-->등급과 연동
+            if (currentRents >= rentLimit) {
+                System.out.println("대출 권수를 초과하였습니다. 현재 대출 수: " + currentRents);
+                return;
+            }
+
+            // 5. 대출 처리
+            // (1) rent 테이블 등록
+            PreparedStatement insertRentStmt = conn.prepareStatement(
+                    "INSERT INTO renttbl (isbn, userid, rentdate, duedate, prolong, turnin) VALUES (?, ?, CURRENT_DATE, ?, ?, 0)");
+            insertRentStmt.setInt(1, isbn);
+            insertRentStmt.setString(2, userId);
+            LocalDate dueDate = LocalDate.now().plusWeeks(2);
+            insertRentStmt.setDate(3, java.sql.Date.valueOf(dueDate));
+            insertRentStmt.setInt(4, 0);
+            insertRentStmt.executeUpdate();
+
+            // (2) booktbl의 rentnum 증가
+            PreparedStatement updateBookStmt = conn.prepareStatement(
+                    "UPDATE booktbl SET rentnum = rentnum + 1 WHERE isbn = ?");
+            updateBookStmt.setInt(1, isbn);
+            updateBookStmt.executeUpdate();
+
+            System.out.println("✅ 대출이 완료되었습니다.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+
+        }
+    }
 }
