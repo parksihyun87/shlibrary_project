@@ -83,6 +83,25 @@ public class MemberManager {
         }
     }
 
+    // 나만의 추천 책 메뉴 실행
+    public void checkMyOwnBookMenu() throws SQLException {
+        while (true) {
+            boolean endFlag = false;
+            MenuManager.checkMyOwnBookMenu();
+            int select = MenuManager.menuInput(MenuManager.CHECKMYOWNBOOK, MenuManager.EXITCHECKMYOWNBOOK);
+            switch (select) {
+                case MenuManager.CHECKMYOWNBOOK:
+                    break;
+                case MenuManager.EXITCHECKMYOWNBOOK:
+                    endFlag = true;
+                    break;
+            }
+            if (endFlag) {
+                break;
+            }
+        }
+    }
+
     public void checkMyInfo() throws SQLException {
         SHLibraryManager sh_man=new SHLibraryManager();
         DBConnect db=new DBConnect();
