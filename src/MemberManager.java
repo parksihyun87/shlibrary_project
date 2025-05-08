@@ -6,6 +6,8 @@ public class MemberManager {
     private Connection conn;
     private Statement stmt;
     private User currentUser= null;
+    Scanner input = new Scanner(System.in);
+    DBConnect db = new DBConnect();
 
     // 현재 대여 현황 메뉴 실행
     public void rentalStatusProcess() {
@@ -15,12 +17,16 @@ public class MemberManager {
             int select = MenuManager.menuInput(MenuManager.CURRENTRENTALSTATUS, MenuManager.EXITRENTALSTATUS);
             switch (select) {
                 case MenuManager.CURRENTRENTALSTATUS:
+                    currentRentalStatus();
                     break;
                 case MenuManager.LASTRENTALSTATUS:
+                    pastRentalStatus();
                     break;
                 case MenuManager.RESERVEDBOOKSTATUS:
+                    reservedBookStatus();
                     break;
                 case MenuManager.REQUESTBOOKSTATUS:
+                    requestBookStatus();
                     break;
                 case MenuManager.EXITRENTALSTATUS:
                     endFlag = true;
@@ -202,6 +208,152 @@ public class MemberManager {
             e.printStackTrace();
         }
     }
+
+
+    // ↓↓ 희용추가(0508)
+    // 나의 대여 현황 > 현재 대여 도서 보기
+    public void currentRentalStatus() {
+        db.initDBConnect();
+        String sql = "select * from usertbl u " +
+                "inner join renttbl r on u.userid = r.userid " +
+                "inner join booktbl b on r.isbn = b.isbn " +
+                "where r.turnin = 0 and u.userid = ? " +
+                "order by r.rentdate desc";
+        System.out.println(currentUser.getUsername() + " 님의 현재 대여 도서 목록");
+        System.out.printf("%-15s %-25s %-10s %-15s %-15s %-5s %n", "ISBN", "도서명", "작가", "대출일", "반납기한", "연장");
+        System.out.println("-".repeat(100));
+        try (Connection conn = db.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)
+        ){
+            pstmt.setString(1, currentUser.getUserid());
+            ResultSet rs = pstmt.executeQuery();
+            boolean isFound = false;
+            while (rs.next()) {
+                int isbn = rs.getInt("isbn");
+                String title = rs.getString("title");
+                String author = rs.getString("author");
+                Date rentdate = rs.getDate("rentdate");
+                Date duedate = rs.getDate("duedate");
+                boolean prolong = rs.getBoolean("prolong");
+                System.out.printf("%-10d %-27s %-10s %-18s %-15s %-5s %n", isbn, title, author, rentdate, duedate, prolong);
+                isFound = true;
+            }
+            if (!isFound) {
+                System.out.println("현재 대여중인 도서가 없습니다.");
+            }
+            System.out.println("-".repeat(100));
+            rs.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 나의 대여 현황 > 지난 대여 도서 보기
+    public void pastRentalStatus() {
+        db.initDBConnect();
+        String sql = "select * from usertbl u " +
+                "inner join renttbl r on u.userid = r.userid " +
+                "inner join booktbl b on r.isbn = b.isbn " +
+                "where r.turnin = 1 and u.userid = ? " +
+                "order by r.rentdate desc";
+        System.out.println(currentUser.getUsername() + " 님의 지난 도서대여 기록");
+        System.out.printf("%-15s %-37s %-15s %-15s %-15s %n", "ISBN", "도서명", "작가", "대출일", "반납일");
+        System.out.println("-".repeat(110));
+        try (Connection conn = db.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)
+        ){
+            pstmt.setString(1, currentUser.getUserid());
+            ResultSet rs = pstmt.executeQuery();
+            boolean isFound = false;
+            while (rs.next()) {
+                int isbn = rs.getInt("isbn");
+                String title = rs.getString("title");
+                String author = rs.getString("author");
+                Date rentdate = rs.getDate("rentdate");
+                Date turnindate = rs.getDate("turnindate");
+                System.out.printf("%-10d %-40s %-15s %-18s %-15s %n", isbn, title, author, rentdate, turnindate);
+                isFound = true;
+            }
+            if (!isFound) {
+                System.out.println("지난 도서대여 기록이 없습니다.");
+            }
+            System.out.println("-".repeat(110));
+            rs.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 나의 대여 현황 > 나의 예약 도서 보기
+    public void reservedBookStatus(){
+        db.initDBConnect();
+        String sql = "select * from reservetbl rs " +
+                "inner join booktbl b on rs.isbn = b.isbn " +
+                "where rs.userid = ? " +
+                "order by reservetdate desc";
+        System.out.println(currentUser.getUsername() + "님의 예약도서 현황");
+        System.out.printf("%-15s %-25s %-10s %-15s %-10s %n", "ISBN", "도서명", "작가", "예약일", "현재상태");
+        System.out.println("-".repeat(90));
+        try (Connection conn = db.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)
+        ){
+            pstmt.setString(1, currentUser.getUserid());
+            ResultSet rs = pstmt.executeQuery();
+            boolean isFound = false;
+            while (rs.next()) {
+                int isbn = rs.getInt("isbn");
+                String title = rs.getString("title");
+                String author = rs.getString("author");
+                Date reservetdate = rs.getDate("reservetdate");
+                String reservestatus = rs.getString("reservestatus");
+                System.out.printf("%-10d %-27s %-10s %-18s %-10s %n", isbn, title, author, reservetdate, reservestatus);
+                isFound = true;
+            }
+            if (!isFound) {
+                System.out.println("에약도서 정보가 없습니다.");
+            }
+            System.out.println("-".repeat(90));
+            rs.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 나의 대여 현황 > 나의 신청 도서 보기
+    public void requestBookStatus() {
+        db.initDBConnect();
+        String sql = "select * from requesttbl where userid = ? order by requestnum desc";
+        System.out.println(currentUser.getUsername() + "님의 신청도서 현황");
+        System.out.printf("%-37s %-15s %-15s %-15s %-15s %n", "도서명", "작가", "출판사", "발행년", "승인여부");
+        System.out.println("-".repeat(110));
+        try (Connection conn = db.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)
+        ){
+            pstmt.setString(1, currentUser.getUserid());
+            ResultSet rs = pstmt.executeQuery();
+            boolean isFound = false;
+            while (rs.next()) {
+                String title = rs.getString("title");
+                String author = rs.getString("author");
+                String publisher = rs.getString("publisher");
+                int pubyear = rs.getInt("pubyear");
+                String comrequest = rs.getString("comrequest");
+                System.out.printf("%-37s %-13s %-15s %-20d %-10s %n", title, author, publisher, pubyear, comrequest);
+                isFound = true;
+            }
+            if (!isFound) {
+                System.out.println("신청도서 정보가 없습니다.");
+            }
+            System.out.println("-".repeat(110));
+            rs.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+    // ↑↑ 희용추가(0508) 끝
+
+
 }
 
 
