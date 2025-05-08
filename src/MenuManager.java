@@ -1,3 +1,4 @@
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class MenuManager {
@@ -210,13 +211,18 @@ public class MenuManager {
         Scanner input=new Scanner(System.in);
         int select;
         while(true){
-            select=input.nextInt();
-            input.nextLine();
-            if(select<static1 || select>static2){
-                System.out.println("잘못된 입력입니다. ");
-                continue;
+            try {
+                select = input.nextInt();
+                input.nextLine();
+                if(select<static1 || select>static2){
+                    System.out.println("잘못된 입력입니다. ");
+                    continue;
+                }
+                break;
+            } catch (InputMismatchException e) {
+                System.out.println("숫자만 입력 가능합니다.");
+                input.nextLine(); // 키보드버퍼 비우기
             }
-            break;
         }
         return select;
     }
