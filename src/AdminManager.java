@@ -63,6 +63,7 @@ public class AdminManager {
             int select = MenuManager.menuInput(MenuManager.CHECKRANK, MenuManager.EXITGRADEADMIN);
             switch (select) {
                 case MenuManager.CHECKRANK:
+                    this.printUserGrades();
                     break;
                 case MenuManager.UPDATERANK:
                     this.gradeAdmin();
@@ -313,6 +314,25 @@ public class AdminManager {
         }
     }
     //도서 신청 확인 메서드 end
+    // 회원 등급 메서드
+    public void printUserGrades() {
+        String sql = "SELECT userid, username, usergrade FROM usertbl ORDER BY usergrade DESC, userid ASC";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            System.out.println("=== 전체 회원 등급 조회 ===");
+            while (rs.next()) {
+                String id = rs.getString("userid");
+                String name = rs.getString("username");
+                String grade = rs.getString("usergrade");
+
+                System.out.printf("ID: %-10s | 이름: %-10s | 등급: %s%n", id, name, grade);
+            }
+        } catch (SQLException e) {
+            System.out.println("회원 등급 조회 중 오류 발생:");
+            e.printStackTrace();
+        }
+    }
 
     public void gradeAdmin() {
         // userDiffMap을 날짜와 대여 횟수 정보로 채운다.
@@ -419,7 +439,7 @@ public class AdminManager {
     }
 
     public void longBlackAdmin(){
-        System.out.println("현재 연체자 목록");
+        System.out.println("현재 30일이상 장기연체자 목록");
         Map<String,Overdue> notReturnedList=overdue();
         for(Map.Entry<String,Overdue> entry: notReturnedList.entrySet()){
             String userid = entry.getKey();
