@@ -293,7 +293,7 @@ public class SHLibraryManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
+    }// 자동 취소 확인
 
     // 사용자 정보 조회
     public User selectUser(String pUserid) {
