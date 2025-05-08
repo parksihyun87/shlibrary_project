@@ -32,7 +32,8 @@ public class MenuManager {
     public final static int MYBOOK=1;
     public final static int MYINFO=2;
     public final static int DELAY=3;
-    public final static int EXITMEMBER=4;
+    public final static int OWNSERVICE=4;
+    public final static int EXITMEMBER=5;
     // 나의 대여 현황 메뉴
     public final static int CURRENTRENTALSTATUS = 1;
     public final static int LASTRENTALSTATUS = 2;
@@ -46,13 +47,17 @@ public class MenuManager {
     // 연체 확인 메뉴
     public final static int CHECKOVERDUE = 1;
     public final static int EXITOVERDUEMENU = 2;
+    // 나만의 추천 책 메뉴
+    public final static int CHECKMYOWNBOOK = 1;
+    public final static int EXITCHECKMYOWNBOOK = 2;
 
     // 회원 메뉴 출력-상위
     public static void memberMenu(){
         System.out.println("1. 나의 대여 현황");
         System.out.println("2. 나의 정보 확인/수정");
         System.out.println("3. 연체 정보 확인");
-        System.out.println("4. 나의 회원 정보 나가기");
+        System.out.println("4. 나만의 추천 책");
+        System.out.println("5. 나의 회원 정보 나가기");
     }
     // 나의 대여 현황 메뉴 출력
     public static void rentalStatus() {
@@ -73,7 +78,11 @@ public class MenuManager {
         System.out.println("1. 연체 여부 확인");
         System.out.println("2. 나가기");
     }
-
+    // 나만의 추천 책 메뉴 출력
+    public static void checkMyOwnBookMenu() {
+        System.out.println("1. 나만의 추천 책 확인");
+        System.out.println("2. 나가기");
+    }
     //* AdminManager 모음 *
     //  관리자 메뉴-상위
     public final static int MEMBERADMIN=1;
