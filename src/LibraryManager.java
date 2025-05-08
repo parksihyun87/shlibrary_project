@@ -945,32 +945,8 @@ public class LibraryManager {
                 return;
             }
             //연체여부 확인
-            String overduequery="select r.userid, r.rentdate, r.duedate, r.turnin, b.title from renttbl r "+
-                    "join booktbl b on r.isbn=b.isbn "+
-                    "where userid=? ";
-            try(PreparedStatement pstmt=db.getConnection().prepareStatement(overduequery)){
-                pstmt.setString(1, currentUser.getUserid());
-
-                try(ResultSet rs=pstmt.executeQuery()) {
-                    //현재 연체중인지를 판별하는 boolean값
-                    while (rs.next()) {
-                        String id = rs.getString("userid");
-                        java.util.Date rentdate = rs.getDate("rentdate");
-                        java.util.Date duedate = rs.getDate("duedate");
-                        String title = rs.getString("title");
-                        int turnin = rs.getInt("turnin");
-
-                        java.util.Date today = new java.util.Date(System.currentTimeMillis());
-                        long diffInMillies = today.getTime() - duedate.getTime();
-                        long diffInDays = diffInMillies / (1000 * 60 * 60 * 24);
-
-                        //현재 연체 중이라면 하단 문구 출력
-                        if (turnin == 0 && diffInDays > 0) {
-                            System.out.println("현재 연체중 도서로 인해 대출이 불가합니다.");
-                            return;
-                        }
-                    }
-                }
+            if(delayedBook()){
+                return;
             }
 
             // 대출 처리
