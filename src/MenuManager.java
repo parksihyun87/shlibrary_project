@@ -87,6 +87,11 @@ public class MenuManager {
     //  도서정보 메뉴
     public final static int CHECKREQUEST=1;
     public final static int EXITBOOKADMIN=2;
+    //  도서정보 상세 메뉴
+    public final static int NONEAPPROVE=1;
+    public final static int APPROVED=2;
+    public final static int REJECTED=3;
+    public final static int EXITAPPROVE=4;
     //  회원등급 메뉴
     public final static int CHECKRANK=1;
     public final static int UPDATERANK=2;

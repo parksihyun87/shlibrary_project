@@ -39,11 +39,11 @@ public class AdminManager {
         while (true) {
             boolean endFlag = false;
               // 메뉴 출력
+            MenuManager.bookAdmin();
             int select = MenuManager.menuInput(MenuManager.CHECKREQUEST, MenuManager.EXITBOOKADMIN);
             switch (select) {
                 case MenuManager.CHECKREQUEST:
                     this.BookRequestMenu();
-
                     break;
                 case MenuManager.EXITBOOKADMIN:
                     endFlag = true;
@@ -112,84 +112,80 @@ public class AdminManager {
         }
     }
 
+    //도서 신청 확인 메서드
     public void BookRequestMenu() throws SQLException{
         while(true){
-            boolean endFlag=false;
-            bookAdmin();
-            int select=MenuManager.menuInput(MenuManager.CHECKREQUEST, MenuManager.EXITBOOKADMIN);
+            boolean endSwitch=false;
 
-            switch(select){
-                case MenuManager.CHECKREQUEST :
-                    System.out.println("1. 승인 대기중인 목록");
-                    System.out.println("2. 승인 완료된 목록");
-                    System.out.println("3. 승인 반려된 목록");
-                    System.out.println("4. 도서 신청 목록 나가기");
-                    int reselect=0;
-                    while(true){
-                        System.out.println("메뉴를 선택하세요. ");
-                        if(input.hasNextInt()){
-                            select=input.nextInt();
-                            input.nextLine();
+            System.out.println("1. 승인 대기중인 목록");
+            System.out.println("2. 승인 완료된 목록");
+            System.out.println("3. 승인 반려된 목록");
+            System.out.println("4. 도서 신청 목록 나가기");
+            int reselect=MenuManager.menuInput(MenuManager.NONEAPPROVE, MenuManager.EXITAPPROVE);
 
-                            if(select>=1&&select<=4){
-                                break;
+            switch(reselect){
+                //승인 대기중인 목록 보기(comrequest='n')
+                case MenuManager.NONEAPPROVE:
+                    List<Request> requestList=getRequestListByStatus("n");
+                    //목록이 비어있는지 확인
+                    if(requestList.isEmpty()){
+                        System.out.println("승인 대기 목록이 없습니다. ");
+                    }else{
+                        for(Request req:requestList){
+                            System.out.println(req);
+                            System.out.println("이 책을 구매하시겠습니까? : Y|R");
+                            String yn=input.nextLine().toUpperCase();
+
+                            if(yn.equals("Y")){
+                                System.out.println("도서의 Call Number를 입력하세요. ");
+                                String callnum=input.nextLine();
+                                approveBookRequest(req.getRequestnum(), callnum);
+                                System.out.println("도서 구매 및 목록 등록 완료");
+                            }else if(yn.equals("R")){
+                                rejectBookRequest(req.getRequestnum());
+                                System.out.println("도서 구매 신청이 반려되었습니다.");
                             }else{
                                 System.out.println("잘못된 입력입니다.");
                             }
-                        }else{
-                            input.nextLine();
-                            System.out.println("숫자를 입력해주세요. ");
                         }
                     }
+                    break;
 
-                    switch(reselect){
-                        case 1:
-
-                            List<Request> requestList=getRequestListByStatus("n");
-                            for(Request req:requestList){
-                                System.out.println(req);
-                                System.out.println("이 책을 구매하시겠습니까? : Y|R");
-                                String yn=input.nextLine().toUpperCase();
-
-                                if(yn.equals("Y")){
-                                    System.out.println("도서의 Call Number를 입력하세요. ");
-                                    String callnum=input.nextLine();
-                                    approveBookRequest(req.getRequestnum(), callnum);
-                                    System.out.println("도서 구매 및 목록 등록 완료");
-                                }else if(yn.equals("R")){
-                                    rejectBookRequest(req.getRequestnum());
-                                    System.out.println("도서 구매 신청이 반려되었습니다.");
-                                }else{
-                                    System.out.println("잘못된 입력입니다.");
-                                }
-                            }
-                            break;
-
-                        case 2:
-                            List<Request> approvedList=getRequestListByStatus("y");
-                            System.out.println("승인 완료 신청 목록 : ");
-                            for(Request req:approvedList){
-                                System.out.println(req);
-                            }
-                            break;
-
-                        case 3:
-                            List<Request> rejectedList=getRequestListByStatus("r");
-                            System.out.println("반려된 신청 목록 : ");
-                            for(Request req:rejectedList){
-                                System.out.println(req);
-                            }
-                            break;
-
-                        case 4:
-                            System.out.println("도서 신청 목록 나가기");
-                            endFlag=true;
-                            break;
+                //승인 완료 목록 보기
+                case MenuManager.APPROVED:
+                    List<Request> approvedList=getRequestListByStatus("y");
+                    if(approvedList.isEmpty()){
+                        System.out.println("승인 완료 목록이 없습니다. ");
+                    }else{
+                        System.out.println("승인 완료 신청 목록 : ");
+                        for(Request req:approvedList){
+                            System.out.println(req);
+                        }
                     }
-                    if(endFlag){
-                        break;
+                    break;
+
+                //승인 반려 목록 보기
+                case MenuManager.REJECTED:
+                    List<Request> rejectedList=getRequestListByStatus("r");
+                    if(rejectedList.isEmpty()){
+                        System.out.println("승인 반려 목록이 없습니다. ");
+                    }else{
+                        System.out.println("반려된 신청 목록 : ");
+                        for(Request req:rejectedList){
+                            System.out.println(req);
+                        }
                     }
+                    break;
+
+                case MenuManager.EXITAPPROVE:
+                    endSwitch=true;
+                    break;
             }
+            if(endSwitch){
+                break;
+            }
+
+            break;
         }
     }
 
