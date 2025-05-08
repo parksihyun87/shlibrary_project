@@ -21,6 +21,7 @@ public class AdminManager {
                 case MenuManager.CHECKMEMBERADMIN:
                     break;
                 case MenuManager.UPDATEMEMBERADMIN:
+                    this.updateMemberInfo();
                     break;
                 case MenuManager.EXITMEMBERADMIN:
                     endFlag = true;
@@ -83,8 +84,10 @@ public class AdminManager {
             int select = MenuManager.menuInput(MenuManager.CHECKOVERDUELIST, MenuManager.EXITBLACKADMIN);
             switch (select) {
                 case MenuManager.CHECKOVERDUELIST:
+                    this.blackAdmin();
                     break;
                 case MenuManager.CHECKBLACKLIST:
+                    this.longBlackAdmin();
                     break;
                 case MenuManager.EXITBLACKADMIN:
                     endFlag = true;
@@ -343,8 +346,6 @@ public class AdminManager {
                         grade = "신입회원";
                     }
                 }
-
-
                 // 등급을 업데이트하는 쿼리 실행
                 pstmt.setString(1, grade);
                 pstmt.setString(2, id);
@@ -409,7 +410,164 @@ public class AdminManager {
             return rs.next();
         }
     }
-//    public void blackAdmin(){
-//
-//    }
-}
+//    <<연체자 함수부>>
+    public void blackAdmin(){
+        System.out.println("현재 연체자 목록");
+        Map<String,Overdue> notReturnedList=overdue();
+            for(Map.Entry<String,Overdue> entry: notReturnedList.entrySet()){
+                String userid = entry.getKey();
+                Overdue overdue = entry.getValue();
+                printOverdue(userid,overdue);
+            }
+    }
+
+    public void longBlackAdmin(){
+        System.out.println("현재 연체자 목록");
+        Map<String,Overdue> notReturnedList=overdue();
+        for(Map.Entry<String,Overdue> entry: notReturnedList.entrySet()){
+            String userid = entry.getKey();
+            Overdue overdue = entry.getValue();
+            if(overdue.getDiffdays()>30) {
+                printOverdue(userid,overdue);
+            }
+        }
+    }
+
+    public void printOverdue(String userid, Overdue overdue){
+        String name = overdue.getName();
+        int isbn = overdue.getIsbn();
+        String title = overdue.getTitle();
+        java.sql.Date duedate = overdue.getdueDate();
+        int diffdays = overdue.getDiffdays();
+
+        System.out.print(" 대출자id: " + userid);
+        System.out.print(", 대출자 이름: " + name);
+        System.out.print(", 책 isbn: " + isbn);
+        System.out.print(", 책 제목: " + title);
+        System.out.print(", 반납기한: " + duedate);
+        System.out.print(", 연체일자: " + diffdays);
+        System.out.println();
+    }
+
+    public Map<String, Overdue> overdue() {
+        Map<String, Overdue> notReturnedList = new HashMap<>();
+        try {
+            String sql = """
+                select r.isbn, b.title, r.duedate, u.userid, u.username, (curdate()-duedate) as datediffdays
+                from renttbl r
+                join usertbl u
+                on u.userid=r.userid
+                join booktbl b
+                on r.isbn=b.isbn
+                where r.turnin=0 and (curdate()-duedate)>0
+                """;
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                String userid= rs.getString("userid");
+                String name= rs.getString("username");
+                int isbn= rs.getInt("isbn");
+                String title= rs.getString("title");
+                java.sql.Date dueDate= rs.getDate("duedate");
+                int datediffdays = rs.getInt("datediffdays");
+
+                notReturnedList.put(userid,new Overdue(name, isbn, title, dueDate, datediffdays));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return notReturnedList;
+    }
+//<<유저 정보 업데이트부>>
+    public void updateMemberInfo() {
+        boolean endFlag = false;
+        System.out.println("관리자 비밀번호를 다시 입력하세요.");
+        String inputAdminPw = input.nextLine();
+        if (currentUser.getUserpw().equals(inputAdminPw)) {
+            System.out.println("회원 목록");
+            String sqlAll = "select * from usertbl";
+            try (ResultSet rs = stmt.executeQuery(sqlAll)) {
+                while (rs.next()) {
+                    String id = rs.getString("userid");
+                    String name = rs.getString("username");
+                    System.out.print("id: " + id);
+                    System.out.print(", 이름: " + name + " ");
+                    System.out.println();
+                }
+                System.out.println("수정할 회원의 아이디를 입력하세요.");
+                String inputId = input.nextLine();
+                while (true) {
+                    System.out.println("선택 번호를 입력해주세요");
+                    System.out.println("1. 회원의 pw 수정");
+                    System.out.println("2. 회원의 나이 수정");
+                    System.out.println("3. 회원의 관심 분야 수정");
+                    System.out.println("4. 나가기");
+
+                    int inputSelect = input.nextInt();
+                    input.nextLine();
+
+                    switch (inputSelect) {
+                        case 1 -> {
+                            System.out.println("수정 pw 입력");
+                            String inputPw = input.nextLine();
+                            String sql = "update usertbl set userpw=? where userid=?";
+                            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                                pstmt.setString(1, inputPw);
+                                pstmt.setString(2, inputId);
+                                pstmt.executeUpdate();
+                            }
+                        }
+                        case 2 -> {
+                            System.out.println("수정 나이 입력");
+                            int inputAge = input.nextInt();
+                            input.nextLine();
+                            String sql = "update usertbl set userage=? where userid=?";
+                            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                                pstmt.setInt(1, inputAge);
+                                pstmt.setString(2, inputId);
+                                pstmt.executeUpdate();
+                            }
+                        }
+                        case 3 -> {
+                            System.out.println("관심사를 골라주세요. \n(0.총류, 1.철학, 2.종교, 3.사회과학, 4.자연과학, 5.기술과학, 6.예술, 7.언어, 8.문학, 9.역사) ");
+                            int userinterestNum = input.nextInt();
+                            input.nextLine();
+                            String userinterest = switch (userinterestNum) {
+                                case 0 -> "총류";
+                                case 1 -> "철학";
+                                case 2 -> "종교";
+                                case 3 -> "사회과학";
+                                case 4 -> "자연과학";
+                                case 5 -> "기술과학";
+                                case 6 -> "예술";
+                                case 7 -> "언어";
+                                case 8 -> "문학";
+                                case 9 -> "역사";
+                                default -> null;
+                            };
+                            if (userinterest != null) {
+                                String sql = "update usertbl set userinterest=? where userid=?";
+                                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                                    pstmt.setString(1, userinterest);
+                                    pstmt.setString(2, inputId);
+                                    pstmt.executeUpdate();
+                                }
+                            } else {
+                                System.out.println("잘못된 번호입니다.");
+                            }
+                        }
+                        case 4 -> {
+                            endFlag = true;
+                        }
+                        default -> System.out.println("잘못된 입력입니다.");
+                    }
+                    if (endFlag) break;
+                }
+                System.out.println("수정이 완료 되었습니다.");
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("비밀번호가 틀렸습니다.");
+        }
+    }
+}//클래스 끝
