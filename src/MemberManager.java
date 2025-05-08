@@ -85,12 +85,48 @@ public class MemberManager {
 
     // 나만의 추천 책 메뉴 실행
     public void checkMyOwnBookMenu() throws SQLException {
+        DBConnect db=new DBConnect();
+        db.initDBConnect();
         while (true) {
             boolean endFlag = false;
             MenuManager.checkMyOwnBookMenu();
             int select = MenuManager.menuInput(MenuManager.CHECKMYOWNBOOK, MenuManager.EXITCHECKMYOWNBOOK);
             switch (select) {
                 case MenuManager.CHECKMYOWNBOOK:
+                    String sql = "SELECT b.title, b.author, b.publisher, b.callnum, b.rentnum " +
+                                    "from usertbl u"+
+                                    "RIGHT OUTER JOIN renttbl r on u.userid = r.userid"+
+                                    "inner join booktbl b on r.isbn = b.isbn";
+                    try (Connection conn = db.getConnection();
+                         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+                        pstmt.setString(1, currentUser.getUserinterest());
+                        ResultSet rs = pstmt.executeQuery();
+
+                        System.out.println("\n[내 관심 분야 인기 도서 목록]");
+                        boolean hasResult = false;
+
+                        // 결과 출력
+                        while (rs.next()) {
+                            hasResult = true;
+                            String title = rs.getString("title");
+                            String author = rs.getString("author");
+                            String publisher = rs.getString("publisher");
+                            String callnum = rs.getString("callnum");
+                            int rentnum = rs.getInt("rentnum");
+
+                            System.out.printf("제목: %s | 저자: %s | 출판사: %s | 분야: %s | 대여 횟수: %d\n",
+                                    title, author, publisher, callnum, rentnum);
+                        }
+
+                        // 결과가 없을 경우 처리
+                        if (!hasResult) {
+                            System.out.println("관심 분야에 해당하는 책이 없습니다.");
+                        }
+
+                    } catch (SQLException e) {
+                        System.out.println("도서 조회 중 오류 발생: " + e.getMessage());
+                    }
                     break;
                 case MenuManager.EXITCHECKMYOWNBOOK:
                     endFlag = true;

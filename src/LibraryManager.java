@@ -1,5 +1,6 @@
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
@@ -813,20 +814,62 @@ public class LibraryManager {
                 return;
             }
 
-            // 4. 실시간 대출 가능 여부 확인 (rent 테이블 기준)
+            LocalDate joinDate = userRs.getDate("userdate").toLocalDate();
+            long yearsSinceJoin = ChronoUnit.YEARS.between(joinDate, LocalDate.now());
+
+            // 4. 실시간 등급 판별을 위한 정보 수집
+            // (1) 총 대출 수
+            PreparedStatement totalRentStmt = conn.prepareStatement(
+                    "SELECT COUNT(*) FROM renttbl WHERE userid = ?");
+            totalRentStmt.setString(1, userId);
+            ResultSet totalRentRs = totalRentStmt.executeQuery();
+            totalRentRs.next();
+            int totalRents = totalRentRs.getInt(1);
+
+            // (2) 장기연체 여부 (returndate > duedate + 28일)
+            PreparedStatement overdueStmt = conn.prepareStatement(
+                    "SELECT COUNT(*) FROM renttbl WHERE userid = ? AND turnin = 1 AND returndate > DATE_ADD(duedate, INTERVAL 28 DAY)");
+            overdueStmt.setString(1, userId);
+            ResultSet overdueRs = overdueStmt.executeQuery();
+            overdueRs.next();
+            boolean isOverdue = overdueRs.getInt(1) > 0;
+
+            // (3) 현재 대출 중 수
             PreparedStatement countStmt = conn.prepareStatement(
                     "SELECT COUNT(*) FROM renttbl WHERE userid = ? AND turnin = 0");
             countStmt.setString(1, userId);
             ResultSet countRs = countStmt.executeQuery();
             countRs.next();
             int currentRents = countRs.getInt(1);
-            int rentLimit = 3; // 대출 한도는 하드코딩-->등급과 연동
+
+            // 5. 등급 및 대출 한도 계산
+            String grade;
+            int rentLimit;
+            if (isOverdue) {
+                grade = "장기연체자";
+                rentLimit = 0;
+            } else if (yearsSinceJoin >= 3 && totalRents >= 20) {
+                grade = "모범회원";
+                rentLimit = 7;
+            } else if (yearsSinceJoin >= 2 && totalRents >= 15) {
+                grade = "우수회원";
+                rentLimit = 5;
+            } else if (yearsSinceJoin >= 1 && totalRents >= 10) {
+                grade = "일반회원";
+                rentLimit = 3;
+            } else {
+                grade = "신입회원";
+                rentLimit = 1;
+            }
+
+            System.out.println("▶ 현재 등급: " + grade + ", 대출 가능 권수: " + rentLimit);
+
             if (currentRents >= rentLimit) {
                 System.out.println("대출 권수를 초과하였습니다. 현재 대출 수: " + currentRents);
                 return;
             }
 
-            // 5. 대출 처리
+            // 6. 대출 처리
             // (1) rent 테이블 등록
             PreparedStatement insertRentStmt = conn.prepareStatement(
                     "INSERT INTO renttbl (isbn, userid, rentdate, duedate, prolong, turnin) VALUES (?, ?, CURRENT_DATE, ?, ?, 0)");
@@ -846,7 +889,6 @@ public class LibraryManager {
             System.out.println("✅ 대출이 완료되었습니다.");
         } catch (SQLException e) {
             e.printStackTrace();
-
         }
     }
 }
