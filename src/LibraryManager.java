@@ -109,7 +109,7 @@ public class LibraryManager {
                 case MenuManager.REQUESTBOOK:
                     applyForBookRequest(currentUser.userid);
                     break;
-                case MenuManager.CHECKDUPLICATE:
+                case MenuManager.CHECKROMANCE:
                     break;
                 case MenuManager.EXITBOOKREQUEST:
                     endFlag = true;
@@ -522,7 +522,34 @@ public class LibraryManager {
                         ", 등급: " + userGrade + ", 최대 가능: " + rentLimit);
                 return;
             }
+            //연체여부 확인
+            String overduequery="select r.userid, r.rentdate, r.duedate, r.turnin, b.title from renttbl r "+
+                    "join booktbl b on r.isbn=b.isbn "+
+                    "where userid=? ";
+            try(PreparedStatement pstmt=db.getConnection().prepareStatement(overduequery)){
+                pstmt.setString(1, currentUser.getUserid());
 
+                try(ResultSet rs=pstmt.executeQuery()) {
+                    //현재 연체중인지를 판별하는 boolean값
+                    while (rs.next()) {
+                        String id = rs.getString("userid");
+                        java.util.Date rentdate = rs.getDate("rentdate");
+                        java.util.Date duedate = rs.getDate("duedate");
+                        String title = rs.getString("title");
+                        int turnin = rs.getInt("turnin");
+
+                        java.util.Date today2 = new java.util.Date(System.currentTimeMillis());
+                        long diffInMillies = today2.getTime() - duedate.getTime();
+                        long diffInDays = diffInMillies / (1000 * 60 * 60 * 24);
+
+                        //현재 연체 중이라면 하단 문구 출력
+                        if (turnin == 0 && diffInDays > 0) {
+                            System.out.println("현재 연체중 도서로 인해 대출이 불가합니다.");
+                            return;
+                        }
+                    }
+                }
+            }
             ArrayList<Book> bookList = new ArrayList<>();
             String sql = "select * from reservetbl r join booktbl b on b.isbn= r.isbn where r.userid=? and r.reservestatus='예약대기' and r.reserverank=0";
             PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -903,6 +930,34 @@ public class LibraryManager {
                 System.out.println("대출 권수를 초과하였습니다. 현재 대출 수: " + currentRents +
                         ", 등급: " + userGrade + ", 최대 가능: " + rentLimit);
                 return;
+            }
+            //연체여부 확인
+            String overduequery="select r.userid, r.rentdate, r.duedate, r.turnin, b.title from renttbl r "+
+                    "join booktbl b on r.isbn=b.isbn "+
+                    "where userid=? ";
+            try(PreparedStatement pstmt=db.getConnection().prepareStatement(overduequery)){
+                pstmt.setString(1, currentUser.getUserid());
+
+                try(ResultSet rs=pstmt.executeQuery()) {
+                    //현재 연체중인지를 판별하는 boolean값
+                    while (rs.next()) {
+                        String id = rs.getString("userid");
+                        java.util.Date rentdate = rs.getDate("rentdate");
+                        java.util.Date duedate = rs.getDate("duedate");
+                        String title = rs.getString("title");
+                        int turnin = rs.getInt("turnin");
+
+                        java.util.Date today = new java.util.Date(System.currentTimeMillis());
+                        long diffInMillies = today.getTime() - duedate.getTime();
+                        long diffInDays = diffInMillies / (1000 * 60 * 60 * 24);
+
+                        //현재 연체 중이라면 하단 문구 출력
+                        if (turnin == 0 && diffInDays > 0) {
+                            System.out.println("현재 연체중 도서로 인해 대출이 불가합니다.");
+                            return;
+                        }
+                    }
+                }
             }
 
             // 대출 처리
