@@ -63,7 +63,7 @@ public class AdminManager {
             int select = MenuManager.menuInput(MenuManager.CHECKRANK, MenuManager.EXITGRADEADMIN);
             switch (select) {
                 case MenuManager.CHECKRANK:
-                    this.printUserGrades();
+                    this.checkMemberGrade();
                     break;
                 case MenuManager.UPDATERANK:
                     this.gradeAdmin();
@@ -314,24 +314,34 @@ public class AdminManager {
         }
     }
     //도서 신청 확인 메서드 end
-    // 회원 등급 메서드
-    public void printUserGrades() {
-        String sql = "SELECT userid, username, usergrade FROM usertbl ORDER BY usergrade DESC, userid ASC";
-        try (PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
+    // 회원 등급 조회 메서드
+//회원등급조회 메서드
+    public void checkMemberGrade() {
+        String query="select * from usertbl ";
+        DBConnect db=new DBConnect();
+        db.initDBConnect();
 
-            System.out.println("=== 전체 회원 등급 조회 ===");
+
+
+        try {
+            ResultSet rs = stmt.executeQuery(query);
             while (rs.next()) {
                 String id = rs.getString("userid");
                 String name = rs.getString("username");
                 String grade = rs.getString("usergrade");
+                Date userDate = rs.getDate("userdate");
 
-                System.out.printf("ID: %-10s | 이름: %-10s | 등급: %s%n", id, name, grade);
+                System.out.print(" 회원 id: " + id);
+                System.out.print(", 회원 이름: " + name);
+                System.out.print(", 회원 등급: " + grade);
+                System.out.println(", 가입 날짜 : " + userDate);
+
+
             }
-        } catch (SQLException e) {
-            System.out.println("회원 등급 조회 중 오류 발생:");
+        }catch(SQLException e){
             e.printStackTrace();
         }
+
     }
 
     public void gradeAdmin() {
