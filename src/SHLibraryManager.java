@@ -182,32 +182,39 @@ public class SHLibraryManager {
         int age;
         String userinterest;
 
-        System.out.println("회원정보를 입력해 주세요.");
+        System.out.println("가입할 회원정보를 입력해 주세요.");
         // ID
         while (true) {
             System.out.print("ID: ");
             id = input.nextLine().trim();
-            if (id.length() > 10 || id.length() < 4) {
-                System.out.println("ID는 4자 이상 10자 이하여야 합니다.");
-                continue;
-            } else if (id.contains(" ")) {
+            if (id.contains(" ")) {
                 System.out.println("ID에 공백을 포함할 수 없습니다.");
                 continue;
+            } else if (!id.matches("^(?=.*[A-Za-z])[A-Za-z0-9]+$")) {
+                System.out.println("ID는 영문자를 반드시 포함하고 있어야 하며, 특수문자와 한글은 들어갈수 없습니다.");
+                continue;
+            } else if (id.length() > 10 || id.length() < 4) {
+                System.out.println("ID는 4자 이상 10자 이하여야 합니다.");
+                continue;
+            } else if(isExistUserid(id)) {
+                System.out.println("중복된 ID가 있습니다. 다른 ID를 입력해 주세요.");
+                continue;
             }
+            System.out.println("사용가능한 ID 입니다.");
             break;
         }
         // PW
         while (true) {
             System.out.print("PW: ");
             pw = input.nextLine().trim();
-            if (!pw.matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{4,10}$")) {
-                System.out.println("비밀번호는 영문, 숫자를 포함하고 4자 이상 10자 이하여야 합니다.");
-                continue;
-            } else if (pw.contains(" ")) {
+            if (pw.contains(" ")) {
                 System.out.println("비밀번호에 공백을 포함할 수 없습니다.");
                 continue;
+            }else if (!pw.matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{4,10}$")) {
+                System.out.println("비밀번호는 영문, 숫자를 포함하고 4자 이상 10자 이하여야 합니다.");
+                continue;
             }
-            System.out.println("유효한 비밀번호 입니다.");
+            System.out.println("사용가능한 비밀번호 입니다.");
             break;
         }
         //이름
@@ -244,6 +251,7 @@ public class SHLibraryManager {
             System.out.println("관심사를 골라주세요. \n(0.총류, 1.철학, 2.종교, 3.사회과학, 4.자연과학, 5.기술과학, 6.예술, 7.언어, 8.문학, 9.역사) ");
             try {
                 int userinterestNum = input.nextInt();
+                input.nextLine();
                 if (userinterestNum >= 0 && userinterestNum < 10){
                     userinterest = switch (userinterestNum) {
                         case 0 -> "총류";
@@ -267,13 +275,32 @@ public class SHLibraryManager {
                 input.nextLine();
             }
         }
-
-        user = new User(id, pw, name, null, age, userinterest, null);
-        inputUser(user);
-        System.out.println("회원가입이 완료되었습니다.");
+        System.out.printf("ID: %s | PW: %s | 이름: %s | 나이: %d | 관심사: %s\n", id, pw, name, age, userinterest);
+        System.out.print("위 정보로 가입하시겠습니까? (Y/N) ");
+        char permit = input.nextLine().trim().toUpperCase().charAt(0);
+        if (permit == 'Y') {
+            user = new User(id, pw, name, null, age, userinterest, null);
+            inputUser(user);
+            System.out.println("회원가입이 완료되었습니다.");
+        } else {
+            System.out.println("회원가입이 취소되었습니다.");
+        }
     }
-    public boolean isValidPw(String pw) {
-        return pw.matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{4,}$"); // 영어 대문자 또는 소문자 1개이상, 숫자 1개이상, 4자 이상
+    public boolean isExistUserid(String userid) { // userid 중복 체크
+        String sql = "select 1 from usertbl where userid = ?";
+        connect.initDBConnect();
+        try (
+                Connection conn = connect.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)
+        ) {
+            pstmt.setString(1, userid);
+            try (ResultSet rs = pstmt.executeQuery()){
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     // 사용자 정보 입력
@@ -288,7 +315,6 @@ public class SHLibraryManager {
             pstmt.setString(5, user.getUserinterest());
             pstmt.executeUpdate();
         } catch (SQLException e) {
-//            e.printStackTrace();
             System.out.println("DB오류");
         }
     }
