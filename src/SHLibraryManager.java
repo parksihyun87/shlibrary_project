@@ -131,6 +131,9 @@ public class SHLibraryManager {
                 case MenuManager.DELAY:
                     meM.overdueCheckProcess();
                     break;
+                case MenuManager.OWNSERVICE:
+                    meM.checkMyOwnBookMenu();
+                    break;
                 case MenuManager.EXITMEMBER:
                     endFlag = true;
                     break;
