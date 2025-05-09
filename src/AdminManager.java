@@ -353,11 +353,11 @@ public class AdminManager {
                 if(isLongTermOverdue(id)){
                     grade="장기연체자";
                 }else{
-                    if (diffMonth >= 18 && rentcount >= 20) {
+                    if (diffMonth >= 36 && rentcount >= 20) {
                         grade = "모범회원";
-                    } else if (diffMonth >= 12 && diffMonth < 18 && rentcount >= 15) {
+                    } else if (diffMonth >= 24 && diffMonth < 36 && rentcount >= 15) {
                         grade = "우수회원";
-                    } else if (diffMonth >= 6 && diffMonth < 12 && rentcount >= 10) {
+                    } else if (diffMonth >= 12 && diffMonth < 24 && rentcount >= 10) {
                         grade = "일반회원";
                     } else {
                         grade = "신입회원";

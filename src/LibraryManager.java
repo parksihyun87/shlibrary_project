@@ -907,16 +907,6 @@ public class LibraryManager {
                 return;
             }
 
-            // 3. 사용자 확인
-            PreparedStatement userStmt = conn.prepareStatement(
-                    "SELECT username FROM usertbl WHERE userid = ?");
-            userStmt.setString(1, userId);
-            ResultSet userRs = userStmt.executeQuery();
-            if (!userRs.next()) {
-                System.out.println("회원 정보가 존재하지 않습니다.");
-                return;
-            }
-
             // 실시간 대출 가능 여부 확인 (rent 테이블 기준)
             PreparedStatement gradeStmt = conn.prepareStatement(
                     "SELECT usergrade FROM usertbl WHERE userid = ?");
