@@ -71,8 +71,8 @@ public class SHLibraryManager {
                 case MenuManager.ADMIN:
                     if(currentUser.getUserid().equals("adm1")||currentUser.getUserid().equals("adm2")){
                         this.adminProcess();
-                    }
-                    System.out.println("관리자만 이용 가능합니다.");
+                    }else{
+                    System.out.println("관리자만 이용 가능합니다.");}
                     break;
                 case MenuManager.LOGOUT:
                     endFlag = true;

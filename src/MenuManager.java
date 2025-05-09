@@ -171,7 +171,7 @@ public class MenuManager {
     public final static int EXITBOOKRETURN=3;
     // 책 신청 메뉴
     public final static int REQUESTBOOK = 1;
-    public final static int CHECKDUPLICATE = 2;
+    public final static int CHECKROMANCE = 2;
     public final static int EXITBOOKREQUEST = 3;
 
     //  도서관 메뉴 출력-상위
@@ -211,7 +211,7 @@ public class MenuManager {
     // 책 신청 메뉴 출력
     public static void bookRequestMenu() {
         System.out.println("1. 책 신청하기");
-        System.out.println("2. 신청 전 중복여부 검색");
+//        System.out.println("2. 신청 전 중복여부 검색");
         System.out.println("3. 나가기");
     }
 
