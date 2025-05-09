@@ -2,6 +2,7 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Scanner;
 
 public class LibraryManager {
@@ -110,6 +111,8 @@ public class LibraryManager {
                     applyForBookRequest(currentUser.userid);
                     break;
                 case MenuManager.CHECKROMANCE:
+                    printKeywordsForISBN(1234);
+                    //여기
                     break;
                 case MenuManager.EXITBOOKREQUEST:
                     endFlag = true;
@@ -971,4 +974,33 @@ public class LibraryManager {
 
         }
     }
+    public void printKeywordsForISBN(int isbn) {
+        String sql = "SELECT keyword1, keyword2, keyword3, keyword4, keyword5, keyword6 FROM keywordtbl WHERE isbn = ?";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, isbn);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                List<String> keywords = new ArrayList<>();
+                for (int i = 1; i <= 6; i++) {
+                    String keyword = rs.getString("keyword" + i);
+                    if (keyword != null && !keyword.trim().isEmpty()) {
+                        keywords.add(keyword.trim());
+                    }
+                }
+                if (keywords.isEmpty()) {
+                    System.out.println("해당 ISBN에 대한 키워드가 없습니다.");
+                } else {
+                    System.out.println("[" + isbn + "] 키워드: " + String.join(" ", keywords));
+                }
+            } else {
+                System.out.println("해당 ISBN에 대한 정보가 없습니다.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }
