@@ -654,7 +654,7 @@ public class LibraryManager {
         while (true) {
             System.out.print("검색어를 입력해 주세요: ");
             searchWord = input.nextLine().trim();
-            if (searchWord == "") {
+            if (searchWord.isEmpty()) {
                 System.out.println("검색어를 한글자 이상 입력해 주세요.");
                 continue;
             }
@@ -708,7 +708,7 @@ public class LibraryManager {
         while (true) {
             System.out.print("검색할 " + categoryWord + "을(를) 입력해 주세요: ");
             searchWord = input.nextLine().trim();
-            if (searchWord == "") {
+            if (searchWord.isEmpty()) {
                 System.out.println("검색어를 한글자 이상 입력해 주세요.");
                 continue;
             }
@@ -742,7 +742,6 @@ public class LibraryManager {
             System.out.println("-".repeat(115));
             int selectedIsbn = selectIsbn();
             if (selectedIsbn == 0) { // 추가된 부분
-                System.out.println("검색을 종료합니다."); // 추가된 부분
                 return 0; // 추가된 부분
             }
 
@@ -760,7 +759,7 @@ public class LibraryManager {
         while (true) {
             System.out.print("검색할 키워드를 입력해 주세요: ");
             searchKeyword = input.nextLine().trim();
-            if (searchKeyword == "") {
+            if (searchKeyword.isEmpty()) {
                 System.out.println("검색어를 한글자 이상 입력해 주세요.");
                 continue;
             }
@@ -821,7 +820,7 @@ public class LibraryManager {
         int isbn = 0;
         while (true) {
             try {
-                System.out.print("선택할 책의 ISBN을 입력해 주세요. (나가려면 0) ");
+                System.out.print("대출할 책의 ISBN을 입력해 주세요. (나가려면 0) ");
                 isbn =  input.nextInt();
                 input.nextLine(); // 키보드버퍼 비우기
                 if ((isbn < 1000 || isbn > 9999) && isbn != 0) {
@@ -864,6 +863,9 @@ public class LibraryManager {
     // ↑↑ 희용추가(0508) 끝
 
     public void handleBookTransaction(int isbn, String userId, Connection conn) {
+        if (isbn == 0){
+            return;
+        }
         try {
             // 책 상세정보 출력
             PreparedStatement bookStmt = conn.prepareStatement("SELECT * FROM booktbl WHERE isbn = ?");
@@ -873,7 +875,6 @@ public class LibraryManager {
             if (bookRs.next()) {
                 System.out.println("책 제목: " + bookRs.getString("title"));
                 System.out.println("저자: " + bookRs.getString("author"));
-                System.out.println("현재 대출수: " + bookRs.getInt("rentnum"));
             } else {
                 System.out.println("해당 ISBN의 책이 존재하지 않습니다.");
                 return;
