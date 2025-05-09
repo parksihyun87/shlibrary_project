@@ -1,10 +1,8 @@
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Scanner;
 
 public class SHLibraryManager {
     // 멤버 변수
@@ -73,8 +71,8 @@ public class SHLibraryManager {
                 case MenuManager.ADMIN:
                     if(currentUser.getUserid().equals("adm1")||currentUser.getUserid().equals("adm2")){
                         this.adminProcess();
-                    }
-                    System.out.println("관리자만 이용 가능합니다.");
+                    }else{
+                    System.out.println("관리자만 이용 가능합니다.");}
                     break;
                 case MenuManager.LOGOUT:
                     endFlag = true;
@@ -181,34 +179,133 @@ public class SHLibraryManager {
     public void newMember() {
         User user = null;
         Scanner input = new Scanner(System.in);
-        System.out.println("회원정보를 입력해 주세요.");
-        System.out.print("ID: ");
-        String id = input.nextLine();
-        System.out.print("PW: ");
-        String pw = input.nextLine();
-        System.out.print("이름: ");
-        String name = input.nextLine();
-        System.out.print("나이: ");
-        int age = input.nextInt();
-        System.out.println("관심사를 골라주세요. \n(0.총류, 1.철학, 2.종교, 3.사회과학, 4.자연과학, 5.기술과학, 6.예술, 7.언어, 8.문학, 9.역사) ");
-        int userinterestNum = input.nextInt();
-        String userinterest = switch (userinterestNum) {
-            case 0 -> "총류";
-            case 1 -> "철학";
-            case 2 -> "종교";
-            case 3 -> "사회과학";
-            case 4 -> "자연과학";
-            case 5 -> "기술과학";
-            case 6 -> "예술";
-            case 7 -> "언어";
-            case 8 -> "문학";
-            case 9 -> "역사";
-            default -> null;
-        };
-        user = new User(id, pw, name, null, age, userinterest, null);
-        inputUser(user);
-        System.out.println("회원가입이 완료되었습니다.");
+        String id;
+        String pw;
+        String name;
+        int age;
+        String userinterest;
+
+        System.out.println("가입할 회원정보를 입력해 주세요.");
+        // ID
+        while (true) {
+            System.out.print("ID: ");
+            id = input.nextLine().trim();
+            if (id.contains(" ")) {
+                System.out.println("ID에 공백을 포함할 수 없습니다.");
+                continue;
+            } else if (!id.matches("^(?=.*[A-Za-z])[A-Za-z0-9]+$")) {
+                System.out.println("ID는 영문자를 반드시 포함하고 있어야 하며, 특수문자와 한글은 들어갈수 없습니다.");
+                continue;
+            } else if (id.length() > 10 || id.length() < 4) {
+                System.out.println("ID는 4자 이상 10자 이하여야 합니다.");
+                continue;
+            } else if(isExistUserid(id)) {
+                System.out.println("중복된 ID가 있습니다. 다른 ID를 입력해 주세요.");
+                continue;
+            }
+            System.out.println("사용가능한 ID 입니다.");
+            break;
+        }
+        // PW
+        while (true) {
+            System.out.print("PW: ");
+            pw = input.nextLine().trim();
+            if (pw.contains(" ")) {
+                System.out.println("비밀번호에 공백을 포함할 수 없습니다.");
+                continue;
+            }else if (!pw.matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{4,10}$")) {
+                System.out.println("비밀번호는 영문, 숫자를 포함하고 4자 이상 10자 이하여야 합니다.");
+                continue;
+            }
+            System.out.println("사용가능한 비밀번호 입니다.");
+            break;
+        }
+        //이름
+        while (true) {
+            System.out.print("이름: ");
+            name = input.nextLine().trim();
+            if (name.length() > 10) {
+                System.out.println("이름은 10자를 초과할 수 없습니다.");
+                continue;
+            } else if (name.length() <= 2) {
+                System.out.println("이름을 2자이상 입력해 주세요.");
+                continue;
+            }
+            break;
+        }
+        // 나이
+        while (true) {
+            System.out.print("나이: ");
+            try {
+                age = input.nextInt();
+                input.nextLine();
+                if (age < 0 || age > 100) {
+                    System.out.println("나이를 정확히 입력해 주세요.");
+                    continue;
+                }
+                break;
+            } catch (InputMismatchException e) {
+                System.out.println("나이는 숫자로 입력해주세요.");
+                input.nextLine();
+            }
+        }
+        // 관심사
+        while (true) {
+            System.out.println("관심사를 골라주세요. \n(0.총류, 1.철학, 2.종교, 3.사회과학, 4.자연과학, 5.기술과학, 6.예술, 7.언어, 8.문학, 9.역사) ");
+            try {
+                int userinterestNum = input.nextInt();
+                input.nextLine();
+                if (userinterestNum >= 0 && userinterestNum < 10){
+                    userinterest = switch (userinterestNum) {
+                        case 0 -> "총류";
+                        case 1 -> "철학";
+                        case 2 -> "종교";
+                        case 3 -> "사회과학";
+                        case 4 -> "자연과학";
+                        case 5 -> "기술과학";
+                        case 6 -> "예술";
+                        case 7 -> "언어";
+                        case 8 -> "문학";
+                        case 9 -> "역사";
+                        default -> null;
+                    };
+                    break;
+                } else {
+                    System.out.println("잘못된 입력입니다.");
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("숫자만 입력 가능합니다.");
+                input.nextLine();
+            }
+        }
+        System.out.printf("ID: %s | PW: %s | 이름: %s | 나이: %d | 관심사: %s\n", id, pw, name, age, userinterest);
+        System.out.print("위 정보로 가입하시겠습니까? (Y/N) ");
+        char permit = input.nextLine().trim().toUpperCase().charAt(0);
+        if (permit == 'Y') {
+            user = new User(id, pw, name, null, age, userinterest, null);
+            inputUser(user);
+            System.out.println("회원가입이 완료되었습니다.");
+        } else {
+            System.out.println("회원가입이 취소되었습니다.");
+        }
     }
+    public boolean isExistUserid(String userid) { // userid 중복 체크
+        String sql = "select 1 from usertbl where userid = ?";
+        connect.initDBConnect();
+        try (
+                Connection conn = connect.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)
+        ) {
+            pstmt.setString(1, userid);
+            try (ResultSet rs = pstmt.executeQuery()){
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     // 사용자 정보 입력
     public void inputUser(User user) {
         String sql = "insert into usertbl values(?,?,?,null,?,?,null)";
@@ -221,7 +318,7 @@ public class SHLibraryManager {
             pstmt.setString(5, user.getUserinterest());
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("DB오류");
         }
     }
     // 로그인 메뉴 실행
